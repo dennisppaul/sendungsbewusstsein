@@ -15,7 +15,13 @@ FILE(GLOB_RECURSE OSCPACK_SRC oscpack/src/*.cpp)
 
 # application
 include_directories(include)
-add_executable(sendungsbewusstsein src/main.cpp src/utils.cpp ${OSCPACK_SRC})
+add_executable(sendungsbewusstsein
+        src/main.cpp
+        src/utils.cpp
+        src/OscManager.cpp
+        src/MOscPacketListener.cpp
+        ${OSCPACK_SRC}
+)
 
 # libraries
 target_compile_definitions(sendungsbewusstsein PRIVATE SIMPLEBLE_STATIC_DEFINE)

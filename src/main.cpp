@@ -1,37 +1,20 @@
 #include <iostream>
 #include <vector>
-
-#include "utils.hpp"
-
+#include <iostream>
+#include <thread>
+#include <chrono>
 #include "simpleble/SimpleBLE.h"
 
-#include <thread>
-
-#include "ip/UdpSocket.h"
-#include "osc/OscOutboundPacketStream.h"
-#include "osc/OscPacketListener.h"
-#include "osc/OscReceivedElements.h"
+#include "utils.hpp"
+#include "OscManager.h"
 
 using namespace std;
+using namespace SimpleBLE;
 
-#define KLANG_OSC_TRANSMIT_ADDRESS        "224.0.0.1"
-#define KLANG_OSC_TRANSMIT_PORT           7001
-#define KLANG_OSC_RECEIVE_PORT            7000
-
-thread mOSCThread;
-UdpTransmitSocket *mTransmitSocket = nullptr;
-
-void osc_thread() {}
+OscManager fOscManager;
 
 int main() {
-
-    /* --- */
-
-    mOSCThread = thread(osc_thread);
-    IpEndpointName mEndpointName = IpEndpointName(KLANG_OSC_TRANSMIT_ADDRESS, KLANG_OSC_TRANSMIT_PORT);
-    mTransmitSocket = new UdpTransmitSocket(mEndpointName);
-
-    /* --- */
+    fOscManager.send(12.3);
 
     auto adapter_optional = Utils::getAdapter();
 
@@ -39,7 +22,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    auto adapter = adapter_optional.value();
+    Adapter adapter = adapter_optional.value();
 
     std::vector<SimpleBLE::Peripheral> peripherals;
 
@@ -84,13 +67,20 @@ int main() {
             }
         }
     }
+
+    std::cout << "+++ type 'exit', 'scan' or '?' " << std::endl;
+    std::string input;
+    while (std::getline(std::cin, input)) {
+        if (input == "exit") {
+            break;
+        } else if (input == "scan") {
+            cout << "re-scan " << endl;
+        }
+        std::cout << "Received input: " << input << std::endl;
+//        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
     peripheral.disconnect();
-
-    /* --- */
-
-    mOSCThread.detach();
-
-    /* --- */
-
+    fOscManager.finalize();
     return EXIT_SUCCESS;
 }
