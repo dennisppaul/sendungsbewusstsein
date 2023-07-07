@@ -1,4 +1,4 @@
-# bluethooth-broadcaster
+# sendungsbewusstsein
 
 ## build prerequisites
 
@@ -6,6 +6,8 @@
 - allow terminal application to use Bluetooth in `System Settings / Privacy & Security / Bluetooth` 
 
 ![](./assets/allow-application-to-use-bluetooth.png)
+
+*example for macOS 13.4.1 and iTerm*
 
 ## build 
 
@@ -19,5 +21,12 @@ $ make
 ## run
 
 ```
-$ ./bluethoothbroadcaster
+$ ./sendungsbewusstsein
 ```
+
+## libraries
+
+this project uses the following libraries:
+
+- [oscpack](https://github.com/RossBencina/oscpack)
+- [SimpleBLE](https://github.com/OpenBluetoothToolbox/SimpleBLE)
