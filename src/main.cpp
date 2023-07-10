@@ -21,7 +21,7 @@ HeartBeat  fHeartBeat(fOscManager);
 
 void scan_for_peripherals(Adapter &adapter, std::vector<SimpleBLE::Peripheral> &peripherals, int timeout_ms) {
     adapter.set_callback_on_scan_found(
-            [&](const SimpleBLE::Peripheral& peripheral) { peripherals.push_back(peripheral); });
+            [&](const SimpleBLE::Peripheral &peripheral) { peripherals.push_back(peripheral); });
     adapter.set_callback_on_scan_start([]() { std::cout << "Scan started." << std::endl; });
     adapter.set_callback_on_scan_stop([]() { std::cout << "Scan stopped." << std::endl; });
     adapter.scan_for(timeout_ms);
@@ -49,23 +49,22 @@ int find_device(std::vector<SimpleBLE::Peripheral> &peripherals, std::string &de
     return NO_DEVICE_FOUND;
 }
 
-
 int main() {
     /* --- */
 
-    string                 _input = "Hello World How Are, You, Today";
-    vector<std::string>    tokens = split(_input, ' ');
-    for (const std::string &t: tokens) {
-        std::cout << t << std::endl;
-    }
-
-    string                 delimiter = ", ";
-    vector<std::string>    _tokens   = split(_input, delimiter);
-    for (const std::string &t: _tokens) {
-        std::cout << t << std::endl;
-    }
-
-    fOscManager.send(12.3);
+//    string                 _input = "Hello World How Are, You, Today";
+//    vector<std::string>    tokens = split(_input, ' ');
+//    for (const std::string &t: tokens) {
+//        std::cout << t << std::endl;
+//    }
+//
+//    string                 delimiter = ", ";
+//    vector<std::string>    _tokens   = split(_input, delimiter);
+//    for (const std::string &t: _tokens) {
+//        std::cout << t << std::endl;
+//    }
+//
+//    fOscManager.send("test", 1.0);
 
     fHeartBeat.start();
     fHeartBeat.set_frequency(5000);
@@ -101,18 +100,18 @@ int main() {
             peripheral.connect();
             connected_peripherals.push_back(peripheral);
 
-            // Store all service and characteristic uuids in a vector.
-            std::vector<std::pair<SimpleBLE::BluetoothUUID, SimpleBLE::BluetoothUUID>> uuids;
-
-            for (auto service: peripheral.services()) {
-                for (auto characteristic: service.characteristics()) {
-                    uuids.emplace_back(service.uuid(), characteristic.uuid());
-                }
-            }
-            std::cout << "The following services and characteristics were found:" << std::endl;
-            for (size_t j         = 0; j < uuids.size(); j++) {
-                std::cout << "[" << j << "] " << uuids[j].first << " " << uuids[j].second << std::endl;
-            }
+//            // store all service and characteristic uuids in a vector as 'service + characteristic' pair
+//            std::vector<std::pair<SimpleBLE::BluetoothUUID, SimpleBLE::BluetoothUUID>> uuids;
+//
+//            for (auto service: peripheral.services()) {
+//                for (auto characteristic: service.characteristics()) {
+//                    uuids.emplace_back(service.uuid(), characteristic.uuid());
+//                }
+//            }
+//            std::cout << "The following services and characteristics were found:" << std::endl;
+//            for (size_t j = 0; j < uuids.size(); j++) {
+//                std::cout << "[" << j << "] " << uuids[j].first << " " << uuids[j].second << std::endl;
+//            }
 //            // Subscribe to the characteristic.
 //            int         selection = 0; /* ---------------------- */
 //            peripheral.notify(uuids[selection].first, uuids[selection].second, [&](SimpleBLE::ByteArray bytes) {
@@ -120,6 +119,14 @@ int main() {
 //                Utils::print_byte_array(bytes);
 //            });
 //            peripheral.unsubscribe(uuids[selection.value()].first, uuids[selection.value()].second);
+        }
+    }
+
+    /* iterate over connected peripherals and instantiate according classes */
+    for (size_t i = 0; i < connected_peripherals.size(); i++) {
+        Peripheral peripheral = connected_peripherals[i];
+        if (peripheral.identifier() == string(DeviceWHOOP4::NAME)) {
+            DeviceWHOOP4(i, peripheral, fOscManager);
         }
     }
 

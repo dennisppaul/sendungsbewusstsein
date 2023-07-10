@@ -3,12 +3,13 @@
 #include <chrono>
 #include <thread>
 
+#include "OscManager.h"
+
 using namespace std;
 
 class HeartBeat {
 public:
     explicit HeartBeat(OscManager &osc_manager) : fOscManager(osc_manager) {
-        fOscManager.send(12.3);
         fIsSending       = false;
         fIsRunning       = true;
         fFrequencyMillis = 1000;
@@ -33,7 +34,7 @@ public:
     }
 
     void send_heartbeat() {
-        fOscManager.send(0);
+        fOscManager.send("heartbeat", (float)fFrequencyMillis);
     }
 
 

@@ -7,14 +7,13 @@ void OscManager::osc_thread() {
     cout << "+++ @OSC / start listening on " << OSC_TRANSMIT_ADDRESS << ":" << OSC_RECEIVE_PORT << endl;
 
     try {
-//#define USE_UDP_MULTICAST
 #ifdef USE_UDP_MULTICAST
         MOscPacketListener mOscListener(this);
             PacketListener *listener_ = &mOscListener;
             IpEndpointName mIpEndpointName = IpEndpointName(OSC_TRANSMIT_ADDRESS, OSC_RECEIVE_PORT);
             if (mIpEndpointName.IsMulticastAddress()) {
 #ifdef DEBUG_OSC
-                KLANG_LOG("@klangstrom_arduino using UDP Multicast");
+                LOG("@klangstrom_arduino using UDP Multicast");
 #endif
                 UdpSocket mUdpSocket;
                 mUdpSocket.SetAllowReuse(true);
@@ -35,6 +34,5 @@ void OscManager::osc_thread() {
     } catch (exception &e) {
         string mError = e.what();
         cerr << "+++ @OSC / error: " << mError << endl;
-//            KLANG_LOG("@klangstrom_arduino osc_thread %s", mError.c_str());
     }
 }
