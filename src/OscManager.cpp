@@ -9,9 +9,9 @@ void OscManager::osc_thread() {
     try {
 //#define USE_UDP_MULTICAST
 #ifdef USE_UDP_MULTICAST
-        MOscPacketListener mOscListener;
+        MOscPacketListener mOscListener(this);
             PacketListener *listener_ = &mOscListener;
-            IpEndpointName mIpEndpointName = IpEndpointName(KLANG_OSC_TRANSMIT_ADDRESS, KLANG_OSC_RECEIVE_PORT);
+            IpEndpointName mIpEndpointName = IpEndpointName(OSC_TRANSMIT_ADDRESS, OSC_RECEIVE_PORT);
             if (mIpEndpointName.IsMulticastAddress()) {
 #ifdef DEBUG_OSC
                 KLANG_LOG("@klangstrom_arduino using UDP Multicast");
@@ -23,7 +23,7 @@ void OscManager::osc_thread() {
                 mux_.AttachSocketListener(&mUdpSocket, listener_);
                 mux_.Run();
             } else {
-                UdpListeningReceiveSocket s(IpEndpointName(IpEndpointName::ANY_ADDRESS, KLANG_OSC_RECEIVE_PORT),
+                UdpListeningReceiveSocket s(IpEndpointName(IpEndpointName::ANY_ADDRESS, OSC_RECEIVE_PORT),
                                             &mOscListener);
                 s.Run();
             }
