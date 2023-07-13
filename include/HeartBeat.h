@@ -3,13 +3,13 @@
 #include <chrono>
 #include <thread>
 
-#include "OscManager.h"
+#include "OscSenderReceiver.h"
 
 using namespace std;
 
 class HeartBeat {
 public:
-    explicit HeartBeat(OscManager &osc_manager) : fOscManager(osc_manager) {
+    explicit HeartBeat(OscSenderReceiver *osc_manager) : fOscManager(osc_manager) {
         fIsSending       = false;
         fIsRunning       = true;
         fFrequencyMillis = 1000;
@@ -34,21 +34,19 @@ public:
     }
 
     void send_heartbeat() {
-        fOscManager.send("heartbeat", (float)fFrequencyMillis);
+        fOscManager->send("heartbeat", (float) fFrequencyMillis);
     }
 
-
 private:
-    const OscManager &fOscManager;
-    bool             fIsRunning;
-    bool             fIsSending;
-    int              fFrequencyMillis;
-    thread           fThread;
+    OscSenderReceiver *fOscManager;
+    bool              fIsRunning;
+    bool              fIsSending;
+    int               fFrequencyMillis;
+    thread            fThread;
 
     void heartbeat_thread() {
         while (fIsRunning) {
             if (fIsSending) {
-                cout << "heart beat" << endl;
                 send_heartbeat();
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(fFrequencyMillis));

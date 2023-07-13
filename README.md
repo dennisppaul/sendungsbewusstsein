@@ -30,3 +30,4 @@ this project uses the following libraries:
 
 - [oscpack](https://github.com/RossBencina/oscpack)
 - [SimpleBLE](https://github.com/OpenBluetoothToolbox/SimpleBLE)
+- [cxxopts](https://github.com/jarro2783/cxxopts)

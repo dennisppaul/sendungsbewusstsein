@@ -5,9 +5,10 @@
 
 #include "simpleble/SimpleBLE.h"
 #include "utils.hpp"
-#include "OscManager.h"
+#include "OscSenderReceiver.h"
 
 using namespace SimpleBLE;
+using namespace std;
 
 class DeviceWHOOP4 {
 public:
@@ -26,61 +27,78 @@ public:
     static constexpr const char *CHARACTERISTIC_BATTERY_LEVEL__RN         = "00002a19-0000-1000-8000-00805f9b34fb";
     static constexpr const char *CHARACTERISTIC_DESCRIPTOR                = "00002902-0000-1000-8000-00805f9b34fb";
 
-    DeviceWHOOP4(int ID, Peripheral &peripheral, OscManager &osc_manager) : fID(ID), fPeripheral(peripheral),
-                                                                            fOscManager(osc_manager) {
+    DeviceWHOOP4(int ID, Peripheral &peripheral, OscSenderReceiver *osc_manager) : fID(ID),
+                                                                                   fPeripheral(peripheral),
+                                                                                   fOscManager(osc_manager) {
 //        for (auto &service: peripheral.services()) {
-//            std::cout << "Service: " << service.uuid() << std::endl;
+//            cout << "Service: " << service.uuid() << endl;
 //
 //            for (auto &characteristic: service.characteristics()) {
-//                std::cout << "  Characteristic: " << characteristic.uuid() << std::endl;
+//                cout << "  Characteristic: " << characteristic.uuid() << endl;
 //
-//                std::cout << "    Capabilities: ";
+//                cout << "    Capabilities: ";
 //                for (auto &capability: characteristic.capabilities()) {
-//                    std::cout << capability << " ";
+//                    cout << capability << " ";
 //                }
-//                std::cout << std::endl;
+//                cout << endl;
 //
 ////                for (auto &descriptor: characteristic.descriptors()) {
-////                    std::cout << "    Descriptor: " << descriptor.uuid() << std::endl;
+////                    cout << "    Descriptor: " << descriptor.uuid() << endl;
 ////                }
 //            }
 //        }
-        // store all service and characteristic uuids in a vector as 'service + characteristic' pair
-        std::vector<std::pair<SimpleBLE::BluetoothUUID, SimpleBLE::BluetoothUUID>> uuids;
 
-        for (auto service: peripheral.services()) {
+        fPeripheral.connect(); // TODO should be done in device class?
+
+        // store all service and characteristic uuids in a vector as 'service + characteristic' pair
+        vector<pair<SimpleBLE::BluetoothUUID, SimpleBLE::BluetoothUUID>> uuids;
+
+        for (auto service: fPeripheral.services()) {
             for (auto characteristic: service.characteristics()) {
                 uuids.emplace_back(service.uuid(), characteristic.uuid());
             }
         }
-        std::cout << "The following services and characteristics were found:" << std::endl;
+        cout << "The following services and characteristics were found:" << endl;
         for (size_t j = 0; j < uuids.size(); j++) {
-            std::cout << "[" << j << "] " << uuids[j].first << " " << uuids[j].second << std::endl;
+            cout << "[" << j << "] " << uuids[j].first << " " << uuids[j].second << endl;
         }
 
-        peripheral.notify(SERVICE_HEART_RATE, CHARACTERISTIC_HEART_RATE_MEASUREMENT__N,
-                          [&](SimpleBLE::ByteArray bytes) {
-                              float mHeartRate = bytes[1];
-                              std::cout << "Received: ";
-                              std::cout << std::fixed << std::setprecision(0) << mHeartRate << " / ";
-                              Utils::print_byte_array(bytes);
-                              fOscManager.send("whoop", mHeartRate); // add ID
-                          });
+        auto mHeartRateCallback = bind(&DeviceWHOOP4::heartrate, this, std::placeholders::_1);
+        fPeripheral.notify(SERVICE_HEART_RATE,
+                           CHARACTERISTIC_HEART_RATE_MEASUREMENT__N,
+                           mHeartRateCallback);
+
+//        fPeripheral.notify(SERVICE_HEART_RATE, CHARACTERISTIC_HEART_RATE_MEASUREMENT__N,
+//                           [&](SimpleBLE::ByteArray bytes) {
+//                               const float mHeartRate = bytes[1];
+//                               cout << "HRM: ";
+//                               cout << fixed << setprecision(0) << mHeartRate << " / ";
+//                               Utils::print_byte_array(bytes);
+//                               fOscManager.send("whoop", mHeartRate); // add ID
+//                           });
+//
 
 //        // Subscribe to the characteristic.
 //        int         selection = 0; /* ---------------------- */
 //        peripheral.notify(uuids[selection].first, uuids[selection].second, [&](SimpleBLE::ByteArray bytes) {
-//            std::cout << "Received: ";
+//            cout << "Received: ";
 //            Utils::print_byte_array(bytes);
 //        });
 //        peripheral.unsubscribe(uuids[selection.value()].first, uuids[selection.value()].second);
     }
 
 private:
-    const int        fID;
-    const Peripheral &fPeripheral;
-    const OscManager &fOscManager;
+    const int         fID;
+    Peripheral        &fPeripheral;
+    OscSenderReceiver *fOscManager;
 
+    void heartrate(ByteArray bytes) {
+        const float mHeartRate = bytes[1];
+        cout << "HRM: ";
+        cout << fixed << setprecision(0) << mHeartRate << " / ";
+        Utils::print_byte_array(bytes);
+        fOscManager->send("whoop", mHeartRate); // add ID
+    }
 };
 
 //const char *PeripheralWHOOP4::NAME_WHOOP = "WHOOP 4A0934182";

@@ -1,9 +1,9 @@
-#include "OscManager.h"
+#include "OscSenderReceiver.h"
 #include "MOscPacketListener.h"
 
 using namespace std;
 
-void OscManager::osc_thread() {
+void OscSenderReceiver::osc_thread() {
     cout << "+++ @OSC / start listening on " << OSC_TRANSMIT_ADDRESS << ":" << OSC_RECEIVE_PORT << endl;
 
     try {
