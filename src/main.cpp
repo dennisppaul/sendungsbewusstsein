@@ -316,8 +316,8 @@ bool parse_input(Adapter &adapter,
             return false;
         }
 
-        if (result.count("capabilities")) {
-            cout << "capabilities" << endl;
+        if (result.count("info")) {
+            cout << "info" << endl;
             print_device_capabilities(peripherals);
             return false;
         }
