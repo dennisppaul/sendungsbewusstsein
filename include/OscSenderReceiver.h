@@ -16,13 +16,16 @@ using namespace std;
 
 class OscSenderReceiver {
 public:
-    OscSenderReceiver() {
-//        IpEndpointName mEndpointName = IpEndpointName(OSC_TRANSMIT_ADDRESS, OSC_TRANSMIT_PORT);
-//        mTransmitSocket = new UdpTransmitSocket(mEndpointName);
-        mOSCThread = new thread(&OscSenderReceiver::osc_thread, this);
+    static OscSenderReceiver &instance() {
+        static OscSenderReceiver instance;
+        return instance;
     }
 
-//    OscSenderReceiver(const OscManager &copy) : mOSCThread(copy.mOSCThread), mTransmitSocket(copy.mTransmitSocket) {}
+    //    OscSenderReceiver(const OscManager &copy) : mOSCThread(copy.mOSCThread), mTransmitSocket(copy.mTransmitSocket) {}
+
+    OscSenderReceiver(const OscSenderReceiver &) = delete;
+
+    OscSenderReceiver &operator=(const OscSenderReceiver &) = delete;
 
     void finalize() {
         mOSCThread->detach();
@@ -31,9 +34,10 @@ public:
     }
 
     void send(const string &address_pattern, const float value) {
-        if (mTransmitSocket == nullptr) {
-            initialize_transmit_socket();
-        }
+//        if (mTransmitSocket == nullptr) {
+//            cerr << "why for the love of it all is `mTransmitSocket` a `nullptr` twice?!?" << endl;
+//            initialize_transmit_socket();
+//        }
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
@@ -48,7 +52,24 @@ public:
               << osc::EndBundle;
             mTransmitSocket->Send(p.Data(), p.Size());
         }
-        cout << "sending: " << address_pattern << endl;
+    }
+
+    void send(const string &address_pattern, const int ID, const float value) {
+        if (mTransmitSocket != nullptr) {
+            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
+                                                            string(OSC_MSG) +
+                                                            string(OSC_MSG_DELIMITER) +
+                                                            address_pattern;
+            p << osc::BeginBundleImmediate
+              << osc::BeginMessage(mMessageAddrPattern.c_str())
+              << ID
+              << value
+              << osc::EndMessage
+              << osc::EndBundle;
+            mTransmitSocket->Send(p.Data(), p.Size());
+        }
     }
 
     void process(const osc::ReceivedMessage &msg) {
@@ -62,7 +83,7 @@ public:
         for (osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
              arg != msg.ArgumentsEnd(); ++arg) {
             mData[i] = (uint8_t) arg->AsInt32();
-            cout << "received: " << mData[i] << endl;
+            cout << "received: " << (int) mData[i] << endl;
             i++;
         }
 //        receive(mData, msg.ArgumentCount());
@@ -74,6 +95,11 @@ private:
     static const uint16_t       OSC_TRANSMIT_OUTPUT_BUFFER_SIZE = 1024;
     thread                      *mOSCThread                     = nullptr;
     UdpTransmitSocket           *mTransmitSocket                = nullptr;
+
+    OscSenderReceiver() {
+        initialize_transmit_socket();
+        mOSCThread = new thread(&OscSenderReceiver::osc_thread, this);
+    }
 
     static bool addr_pattern_equals(const osc::ReceivedMessage &msg, const char *pAddrPatter) {
         return (strcmp(msg.AddressPattern(), pAddrPatter) == 0);

@@ -1,6 +1,16 @@
 #pragma once
 
-class DeviceWahooKICKR {
+#include "Device.h"
+
+class DeviceWahooKICKR : public Device {
+public:
+    static constexpr const char *NAME = "Wahoo KICKR 3724";
+
+    virtual ~DeviceWahooKICKR() = default;
+
+    int ID() {
+        return -1;
+    }
 };
 
 /*

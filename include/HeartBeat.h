@@ -9,7 +9,7 @@ using namespace std;
 
 class HeartBeat {
 public:
-    explicit HeartBeat(OscSenderReceiver *osc_manager) : fOscManager(osc_manager) {
+    explicit HeartBeat() {
         fIsSending       = false;
         fIsRunning       = true;
         fFrequencyMillis = 1000;
@@ -33,18 +33,17 @@ public:
         fFrequencyMillis = frequency_millis;
     }
 
-    void send_heartbeat() {
-        fOscManager->send("heartbeat", (float) fFrequencyMillis);
+    void send_heartbeat() const {
+        OscSenderReceiver::instance().send("heartbeat", (float) fFrequencyMillis);
     }
 
 private:
-    OscSenderReceiver *fOscManager;
-    bool              fIsRunning;
-    bool              fIsSending;
-    int               fFrequencyMillis;
-    thread            fThread;
+    bool   fIsRunning;
+    bool   fIsSending;
+    int    fFrequencyMillis;
+    thread fThread;
 
-    void heartbeat_thread() {
+    void heartbeat_thread() const {
         while (fIsRunning) {
             if (fIsSending) {
                 send_heartbeat();

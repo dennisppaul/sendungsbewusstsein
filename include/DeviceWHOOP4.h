@@ -6,11 +6,12 @@
 #include "simpleble/SimpleBLE.h"
 #include "utils.hpp"
 #include "OscSenderReceiver.h"
+#include "Device.h"
 
 using namespace SimpleBLE;
 using namespace std;
 
-class DeviceWHOOP4 {
+class DeviceWHOOP4 : public Device {
 public:
     static constexpr const char *NAME                                     = "WHOOP 4A0934182";
     static constexpr const char *SERVICE_WHOOP_CUSTOM                     = "61080001-8d6d-82b8-614a-1c8cb0f8dcc6";
@@ -27,9 +28,7 @@ public:
     static constexpr const char *CHARACTERISTIC_BATTERY_LEVEL__RN         = "00002a19-0000-1000-8000-00805f9b34fb";
     static constexpr const char *CHARACTERISTIC_DESCRIPTOR                = "00002902-0000-1000-8000-00805f9b34fb";
 
-    DeviceWHOOP4(int ID, Peripheral &peripheral, OscSenderReceiver *osc_manager) : fID(ID),
-                                                                                   fPeripheral(peripheral),
-                                                                                   fOscManager(osc_manager) {
+    DeviceWHOOP4(int ID, Peripheral &peripheral) : fID(ID), fPeripheral(peripheral) {
 //        for (auto &service: peripheral.services()) {
 //            cout << "Service: " << service.uuid() << endl;
 //
@@ -87,22 +86,27 @@ public:
 //        peripheral.unsubscribe(uuids[selection.value()].first, uuids[selection.value()].second);
     }
 
+    virtual ~DeviceWHOOP4() = default;
+
+    int ID() {
+        return fID;
+    }
+
 private:
-    const int         fID;
-    Peripheral        &fPeripheral;
-    OscSenderReceiver *fOscManager;
+    const int  fID;
+    Peripheral &fPeripheral;
 
     void heartrate(ByteArray bytes) {
+#define WHOOP4_DEBUG_HR
+#ifdef  WHOOP4_DEBUG_HR
         const float mHeartRate = bytes[1];
         cout << "HRM: ";
         cout << fixed << setprecision(0) << mHeartRate << " / ";
         Utils::print_byte_array(bytes);
-        fOscManager->send("whoop", mHeartRate); // add ID
+#endif
+        OscSenderReceiver::instance().send(NAME, fID, mHeartRate);
     }
 };
-
-//const char *PeripheralWHOOP4::NAME_WHOOP = "WHOOP 4A0934182";
-
 
 /*
 Connecting to WHOOP 4A0934182 [D4E2AFC8-A8C0-46FC-CB3F-880251A0D10B]
