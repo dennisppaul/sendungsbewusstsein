@@ -5,12 +5,17 @@
 #include "simpleble/SimpleBLE.h"
 
 namespace Utils {
+
+    void print_byte(unsigned char byte);
+
+    void print_byte_array_as_bits(const SimpleBLE::ByteArray &bytes);
+
 /**
  * @brief Function to retrieve the adapter easily
  *
  * @return the adapter or an empty optional
  */
-std::optional<SimpleBLE::Adapter> getAdapter();
+    std::optional<SimpleBLE::Adapter> getAdapter();
 
 /**
  * @brief Function to get a user input as size_t, it's used in all examples to select an index
@@ -20,12 +25,12 @@ std::optional<SimpleBLE::Adapter> getAdapter();
  *
  * @return the value or empty optional
  */
-std::optional<std::size_t> getUserInputInt(const std::string& line, std::size_t max);
+    std::optional<std::size_t> getUserInputInt(const std::string &line, std::size_t max);
 
 /**
  * @brief Pretty print a ByteArray
  */
-void print_byte_array(const SimpleBLE::ByteArray& bytes);
+    void print_byte_array(const SimpleBLE::ByteArray &bytes);
 }  // namespace Utils
 
 #endif

@@ -25,9 +25,8 @@ static const string CONNECTION_TYPE_NAME                 = "name";
 static const string CONNECTION_TYPE_ADDRESS              = "address";
 static const string CONNECTION_TYPE_INDEX                = "index";
 
-vector<string> registered_device_names = {DeviceWHOOP4::NAME};
 vector<Device> connected_devices;
-int            fCurrentDeviceID        = NO_DEVICE_FOUND;
+int            fCurrentDeviceID = NO_DEVICE_FOUND;
 
 void scan_for_peripherals(Adapter &adapter,
                           vector<SimpleBLE::Peripheral> &peripherals,
@@ -194,10 +193,15 @@ int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
         if (peripheral.identifier() == string(DeviceWHOOP4::NAME)) {
             cout << peripheral.identifier() << " <> " << string(DeviceWHOOP4::NAME) << endl;
             current_device_ID++;
+            // TODO safe instance somehow
             DeviceWHOOP4(current_device_ID, peripheral);
 //            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
         } else if (peripheral.identifier() == string(DeviceWahooKICKR::NAME)) {
             cout << peripheral.identifier() << " <> " << string(DeviceWahooKICKR::NAME) << endl;
+            current_device_ID++;
+            // TODO safe instance somehow
+            DeviceWahooKICKR(current_device_ID, peripheral);
+//            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
         }
     }
     return current_device_ID;
@@ -432,6 +436,7 @@ bool parse_input_vec(Adapter &adapter,
 //}
 
 int main(int argc, char *argv[]) {
+    cout << "\\e[31mHello\\e[0m World" << endl;
     HeartBeat fHeartBeat;
     init_heart_beat(fHeartBeat);
 
