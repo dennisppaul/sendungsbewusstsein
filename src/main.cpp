@@ -27,7 +27,8 @@ static const string CONNECTION_TYPE_ADDRESS              = "address";
 static const string CONNECTION_TYPE_INDEX                = "index";
 
 vector<Device> connected_devices;
-int            fCurrentDeviceID = NO_DEVICE_FOUND;
+int            fCurrentDeviceID   = NO_DEVICE_FOUND;
+int            fWatchdogFrequency = DEFAULT_WATCHDOG_SIGNAL_FREQUENCY_MS;
 
 struct ApplicationProperties {
     string OSC_address           = DEFAULT_OSC_TRANSMIT_ADDRESS;
@@ -89,7 +90,9 @@ void scan_for_peripherals(Adapter &adapter,
 
 int find_device_by_name(vector<SimpleBLE::Peripheral> &peripherals, const string &name) {
     for (int i = 0; i < peripherals.size(); i++) {
-        if (peripherals[i].identifier().starts_with(name)) {
+        // TODO check if it is better to test for equality or `starts_with`
+        if (starts_with_ignore_case(peripherals[i].identifier(), name)) {
+//        if (peripherals[i].identifier().starts_with(name)) {
 //        if (peripherals[i].identifier() == name) {
             console << "FOUND by name > "
                     << " name:[" << peripherals[i].identifier() << "]"
@@ -200,27 +203,34 @@ int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
     for (int i: mDeviceIDs) {
         auto peripheral = peripherals[i];
         // TODO actually connect to devices
-        if (peripheral.identifier() == string(DeviceWHOOP4::NAME)) {
-            console << peripheral.identifier() << " <> " << string(DeviceWHOOP4::NAME) << endl;
+        if (peripheral.identifier().starts_with("WHOOP")) {
             current_device_ID++;
             // TODO safe instance somehow
-            DeviceWHOOP4(current_device_ID, peripheral);
+            auto *device = new DeviceWHOOP4(current_device_ID, peripheral);
+            console << peripheral.identifier() << " <> " << string(device->name()) << endl;
 //            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
-        } else if (peripheral.identifier() == string(DeviceWahooKICKR::NAME)) {
-            console << peripheral.identifier() << " <> " << string(DeviceWahooKICKR::NAME) << endl;
+        } else if (peripheral.identifier().starts_with("Wahoo KICKR")) {
             current_device_ID++;
             // TODO safe instance somehow
-            DeviceWahooKICKR(current_device_ID, peripheral);
+            auto *device = new DeviceWahooKICKR(current_device_ID, peripheral);
+            console << peripheral.identifier() << " <> " << string(device->name()) << endl;
 //            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
         } else if (peripheral.identifier().starts_with("KICKR CORE")) {
-            console << peripheral.identifier() << " <> " << string(DeviceWahooKICKR::NAME)
-                    << " ( note this is just a very dirty hack to test if 'KICKR CORE' works like 'Wahoo KICKR' )"
-                    << endl;
             current_device_ID++;
             // TODO safe instance somehow
             // TODO this uses KICKR class for KICKR CORE
-            DeviceWahooKICKR(current_device_ID, peripheral);
+            auto *device = new DeviceWahooKICKR(current_device_ID, peripheral);
+            console << peripheral.identifier() << " <> " << string(device->name())
+                    << " ( note this is just a very dirty hack to test if 'KICKR CORE' works like 'Wahoo KICKR' )"
+                    << endl;
+        } else {
+            cerr << "+++ could not connect to device " << peripheral.identifier() << endl;
         }
+        console << "connected OSC device ID of device "
+                << peripheral.identifier()
+                << " is "
+                << current_device_ID
+                << endl;
     }
     return current_device_ID;
 }
@@ -240,58 +250,58 @@ void print_device_capabilities(vector<SimpleBLE::Peripheral> &peripherals) {
             string connectable_string = peripheral.is_connectable() ? "connectable" : "non-connectable";
             string peripheral_string  = peripheral.identifier() + " [" + peripheral.address() + "] " +
                                         to_string(peripheral.rssi()) + " dBm";
-            console << peripheral_string << " " << connectable_string << endl;
-//            console << "MTU: " << peripheral.mtu() << endl; // Maximum Transmission Unit.
+            cout << peripheral_string << " " << connectable_string << endl;
+//            cout << "MTU: " << peripheral.mtu() << endl; // Maximum Transmission Unit.
             if (peripheral.is_connectable()) {
                 const bool mIsConnected = peripheral.is_connected();
                 if (!mIsConnected) {
-                    console << "connect";
+                    cout << "connect";
                     peripheral.connect();
-                    console << "ed … successfully" << endl;
+                    cout << "ed … successfully" << endl;
                 } else {
-                    console << "already connected." << endl;
+                    cout << "already connected." << endl;
                 }
 
                 for (auto &service: peripheral.services()) {
-                    console << "Service: " << service.uuid() << endl;
+                    cout << "Service: " << service.uuid() << endl;
 
                     for (auto &characteristic: service.characteristics()) {
-                        console << "  Characteristic: " << characteristic.uuid() << endl;
+                        cout << "  Characteristic: " << characteristic.uuid() << endl;
 
-                        console << "    Capabilities: ";
+                        cout << "    Capabilities: ";
                         for (auto &capability: characteristic.capabilities()) {
                             console << capability << " ";
                         }
-                        console << endl;
+                        cout << endl;
 
                         for (auto &descriptor: characteristic.descriptors()) {
-                            console << "    Descriptor: " << descriptor.uuid() << endl;
+                            cout << "    Descriptor: " << descriptor.uuid() << endl;
                         }
                     }
                 }
 
                 if (!mIsConnected) {
-                    console << "disconnect";
+                    cout << "disconnect";
                     peripheral.disconnect();
-                    console << "ed … successfully" << endl;
+                    cout << "ed … successfully" << endl;
                 }
             } else {
-                console << "cannot connect" << endl;
+                cout << "cannot connect" << endl;
             }
         } catch (const exception &e) {
-            console << "error: " << e.what() << endl;
+            cout << "error: " << e.what() << endl;
         }
     }
 }
 
 void init_watchdog(Watchdog &watchdog) {
     watchdog.start();
-    watchdog.set_frequency(DEFAULT_WATCHDOG_SIGNAL_FREQUENCY_MS);
+    watchdog.set_frequency(fWatchdogFrequency);
 }
 
 void print_prompt() {
-    console << PROMPT_TOKE;
-    console.flush();
+    cout << PROMPT_TOKE;
+    cout.flush();
 }
 
 bool parse_input(Adapter &adapter,
@@ -363,31 +373,27 @@ bool parse_input(Adapter &adapter,
 
         if (result.count("watchdog")) {
             console << "watchdog frequency = " << result["watchdog"].as<int>() << endl;
-            return false;
+            fWatchdogFrequency = result["watchdog"].as<int>();
         }
 
         if (result.count("address")) {
             default_application_properties.OSC_address = result["address"].as<string>();
             console << "OSC address = " << default_application_properties.OSC_address << endl;
-            return false;
         }
 
         if (result.count("transmit")) {
             default_application_properties.OSC_transmit_port = result["transmit"].as<int>();
             console << "OSC transmit port = " << default_application_properties.OSC_transmit_port << endl;
-            return false;
         }
 
         if (result.count("receive")) {
             default_application_properties.OSC_receive_port = result["receive"].as<int>();
             console << "OSC receive port = " << default_application_properties.OSC_receive_port << endl;
-            return false;
         }
 
         if (result.count("multicast")) {
             default_application_properties.OSC_use_UDP_multicast = result["multicast"].as<bool>();
             console << "OSC use UDP multicast = " << default_application_properties.OSC_use_UDP_multicast << endl;
-            return false;
         }
 
         vector<string> mPeripherals;
@@ -429,6 +435,7 @@ bool parse_input(Adapter &adapter,
 
 bool parse_input_vec(Adapter &adapter,
                      vector<SimpleBLE::Peripheral> &peripherals,
+                     Watchdog *watchdog,
                      vector<string> &args_vec) {
     int         argc   = static_cast<int>(args_vec.size());
     char        **argv = new char *[args_vec.size()];
@@ -484,6 +491,8 @@ bool parse_input_vec(Adapter &adapter,
 //    }
 //}
 
+void osc_callback() {}
+
 int main(int argc, char *argv[]) {
     console << "Sendungsbewusstsein" << endl;
 
@@ -493,10 +502,11 @@ int main(int argc, char *argv[]) {
         cerr << "+++ could not find BLE adapter" << endl;
         return EXIT_FAILURE;
     }
-    Adapter                       adapter = adapter_optional.value();
+    Adapter adapter = adapter_optional.value();
+    console << "Using adapter: " << adapter.identifier() << " [" << adapter.address() << "]" << std::endl;
     vector<SimpleBLE::Peripheral> peripherals;
     vector<SimpleBLE::Peripheral> connected_peripherals;
-    bool                          mExit   = false;
+    bool                          mExit = false;
 
     /* CLI args */
     if (argc > 1) {
@@ -508,6 +518,7 @@ int main(int argc, char *argv[]) {
                             default_application_properties.OSC_transmit_port,
                             default_application_properties.OSC_receive_port,
                             default_application_properties.OSC_use_UDP_multicast);
+    this_thread::sleep_for(std::chrono::seconds(2));
 
     /* watchdog */
     // TODO implement option to turn off watchdog
@@ -532,7 +543,7 @@ int main(int argc, char *argv[]) {
             console << endl;
 #endif
 
-            mExit = parse_input_vec(adapter, peripherals, commands);
+            mExit = parse_input_vec(adapter, peripherals, &watchdog, commands);
         }
         print_prompt();
     }

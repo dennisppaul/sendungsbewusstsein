@@ -12,33 +12,30 @@ using namespace SimpleBLE;
 using namespace std;
 
 class DeviceWHOOP4 : public Device {
-#define WHOOP4_DEBUG_SERVICES
-#define WHOOP4_DEBUG_HR
+//#define WHOOP4_DEBUG_SERVICES
+//#define WHOOP4_DEBUG_HR
 
 public:
-    DeviceWHOOP4(int ID, Peripheral &peripheral) : fID(ID), fPeripheral(peripheral) {
+    DeviceWHOOP4(int osc_index, Peripheral &peripheral) :
+            Device("WHOOP", osc_index),
+            fPeripheral(peripheral) {
         connect_impl();
         subscribe_heartrate();
     }
 
+    DeviceWHOOP4(const DeviceWHOOP4 &) = delete;
+
     ~DeviceWHOOP4() override = default;
-
-    int ID() override {
-        return fID;
-    }
-
-    const char *name() override {
-        return NAME;
-    }
 
     void connect() override { connect_impl(); }
 
     void disconnect() override {
         fPeripheral.disconnect();
-        OscSenderReceiver::instance()->send(NAME, fID, CMD_DISCONNECT);
+        OscSenderReceiver::instance()->send(name(), CMD_DISCONNECT, ID());
     }
 
-    static constexpr const char *NAME = "WHOOP 4A0934182";
+//    static constexpr const char *NAME = "WHOOP";
+//    static constexpr const char *NAME = "WHOOP 4A0934182";
 
 private:
     static constexpr const char *SERVICE_WHOOP_CUSTOM                    = "61080001-8d6d-82b8-614a-1c8cb0f8dcc6";
@@ -55,7 +52,6 @@ private:
     static constexpr const char *CHARACTERISTIC_BATTERY_LEVEL_RN         = "00002a19-0000-1000-8000-00805f9b34fb";
     static constexpr const char *CHARACTERISTIC_DESCRIPTOR               = "00002902-0000-1000-8000-00805f9b34fb";
 
-    const int                                  fID;
     Peripheral                                 &fPeripheral;
     vector<pair<BluetoothUUID, BluetoothUUID>> uuids;
     const Feature                              feature_heartrate{SERVICE_HEART_RATE,
@@ -78,14 +74,15 @@ private:
                                 feature_heartrate.characteristic);
     }
 
-    void notify_heartrate(ByteArray bytes) const {
-#ifdef  WHOOP4_DEBUG_HR
+    void notify_heartrate(ByteArray bytes) {
         const float mHeartRate = bytes[1];
+        OscSenderReceiver::instance()->send(name(), "heartrate", ID(), mHeartRate);
+//        OscSenderReceiver::instance()->send(name(), "heartrate", fID, mHeartRate);
+#ifdef  WHOOP4_DEBUG_HR
         cout << "HRM: ";
         cout << fixed << setprecision(0) << mHeartRate << " / ";
         Utils::print_byte_array(bytes);
 #endif
-        OscSenderReceiver::instance()->send(NAME, fID, feature_heartrate.description, mHeartRate);
     }
 
     void update_services() {
@@ -123,7 +120,7 @@ private:
     void connect_impl() {
         fPeripheral.connect();
         update_services();
-        OscSenderReceiver::instance()->send(NAME, fID, CMD_CONNECT);
+        OscSenderReceiver::instance()->send(name(), CMD_CONNECT, ID());
     }
 };
 

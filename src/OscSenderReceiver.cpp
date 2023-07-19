@@ -1,3 +1,4 @@
+#include "Console.h"
 #include "OscSenderReceiver.h"
 #include "MOscPacketListener.h"
 
@@ -9,8 +10,11 @@ void OscSenderReceiver::osc_thread(const char *address,
                                    int port_transmit,
                                    int port_receive,
                                    bool use_muilticast) {
-    cout << "+++ @OSC start listening on :" << port_transmit
-         << " + receiving on " << address << ":" << port_receive << endl;
+    console << "@OSC start transmitting on "
+            << address << ":" << port_transmit
+            << " + receiving on :"
+            << port_receive
+            << endl;
 
     try {
         if (use_muilticast) {
@@ -19,7 +23,7 @@ void OscSenderReceiver::osc_thread(const char *address,
             IpEndpointName mIpEndpointName = IpEndpointName(address, port_receive);
             if (mIpEndpointName.IsMulticastAddress()) {
 #ifdef DEBUG_OSC
-                cout << "+++ @OSC using UDP Multicast" << endl;
+                console << "@OSC using UDP Multicast" << endl;
 #endif
                 UdpSocket mUdpSocket;
                 mUdpSocket.SetAllowReuse(true);
@@ -39,6 +43,6 @@ void OscSenderReceiver::osc_thread(const char *address,
         }
     } catch (exception &e) {
         string mError = e.what();
-        cerr << "+++ @OSC / error: " << mError << endl;
+        cerr << "@OSC / error: " << mError << endl;
     }
 }

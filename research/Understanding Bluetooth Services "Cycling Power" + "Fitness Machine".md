@@ -1,12 +1,12 @@
 # Understanding Bluetooth Services "Cycling Power" + "Fitness Machine"
 
-most information can be found in "GATT Specification Supplement" written by the "Bluetooth Specification Automation Task Force (SATF)" and "Fitness Machine Service 1.0" by the "Sports and Fitness Working Group".
+most information can be found in the "GATT Specification Supplement" written by the "Bluetooth Specification Automation Task Force (SATF)" and "Fitness Machine Service 1.0" by the "Sports and Fitness Working Group".
 
 the principle seems to be always the same: the characteristics "Cycling Power Measurement" and "Indoor Bike Data" can be subscribed to and deliver continous data. in both cases the first 2 bytes contain a series of flags that define the amount of paramaters i.e the amount of bytes to follow. the format of the parameters ( e.g uint8, uint16, int16 … ) is specified per paramter. 
 
-for wahoo 
+additionally, the "GATT Specification Supplement" it is stated that "(a)ll fields in a characteristic or descriptor are little endian unless otherwise stated."
 
-## Characteristic "Cycling Power Feature" from service "Cycling Power"
+## Service "Cycling Power" + Characteristic "Cycling Power Feature" 
 
 see "GATT Specification Supplement 10: 3.64 Cycling Power Feature" (p73) for details.
 
@@ -60,7 +60,7 @@ the *Cycling Power Feature* field is comprised of 32 bits ( or 4 octets ( i.e by
 01001000 // Offset Compensation Supported, Crank Length Adjustment Supported 
 ```
 
-## Characteristic "Cycling Power Measurement" from service "Cycling Power"
+## Service "Cycling Power" + Characteristic "Cycling Power Measurement"
 
 see "GATT Specification Supplement 10: 3.65 Cycling Power Measurement" (p74) for details.
 
@@ -192,7 +192,7 @@ a longer reading:
 > 34 00 00 00 d3 2f 56 00 00 00 61 d6 0a 00 7e 27 
 ```
 
-## Characteristic "Indoor Bike Data" from service "Fitness Machine"
+## Service "Fitness Machine" + Characteristic "Indoor Bike Data"
 
 see "GATT Specification Supplement 10" chapter "3.125 Indoor Bike Data" page 115
 
@@ -250,7 +250,7 @@ each data package is comprised of 2 bytes ( i.e octets ) with *flags** followed 
 the first 2 bytes ( i.e `44 00` ) define the flags. according to table *flags* the following features are present: 
 
 ```
-00100010 // Instantaneous Cadence present, Instantaneous Power present
+00100010 // Instantaneous Speed field present ( flag = 0 ), Instantaneous Cadence present, Instantaneous Power present
 00000000 // 
 ```
 
@@ -318,7 +318,7 @@ longer measurements:
 > 44 00 00 00 00 00 00 00 
 ```
 
-## Characteristic "Fitness Machine Feature" from service "Fitness Machine"
+## Service "Fitness Machine" + Characteristic "Fitness Machine Feature"
 
 see "Fitness Machine Service 1.0: 4.3 Fitness Machine Feature 19" (p19) for details
 

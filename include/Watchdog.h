@@ -9,6 +9,8 @@ using namespace std;
 
 class Watchdog {
 public:
+    const char *ADDR_PATTERN = "watchdog";
+
     explicit Watchdog() {
         fIsSending       = false;
         fIsRunning       = true;
@@ -34,7 +36,7 @@ public:
     }
 
     void send_heartbeat() const {
-        OscSenderReceiver::instance()->send("heartbeat", (float) fFrequencyMillis);
+        OscSenderReceiver::instance()->send(ADDR_PATTERN, (float) fFrequencyMillis);
     }
 
 private:
@@ -45,7 +47,7 @@ private:
 
     void heartbeat_thread() const {
         while (fIsRunning) {
-            if (fIsSending) {
+            if (fIsSending && fFrequencyMillis > 0) {
                 send_heartbeat();
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(fFrequencyMillis));

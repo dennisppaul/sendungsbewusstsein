@@ -61,7 +61,7 @@ std::optional<SimpleBLE::Adapter> Utils::getAdapter() {
     // only one found, returning directly
     if (adapter_list.size() == 1) {
         auto adapter = adapter_list.at(0);
-        std::cout << "Using adapter: " << adapter.identifier() << " [" << adapter.address() << "]" << std::endl;
+//        std::cout << "Using adapter: " << adapter.identifier() << " [" << adapter.address() << "]" << std::endl;
         return adapter;
     }
 
