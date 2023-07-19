@@ -7,16 +7,16 @@
 
 using namespace std;
 
-class HeartBeat {
+class Watchdog {
 public:
-    explicit HeartBeat() {
+    explicit Watchdog() {
         fIsSending       = false;
         fIsRunning       = true;
         fFrequencyMillis = 1000;
-        fThread          = thread(&HeartBeat::heartbeat_thread, this);
+        fThread          = thread(&Watchdog::heartbeat_thread, this);
     }
 
-    ~HeartBeat() {
+    ~Watchdog() {
         fIsRunning = false;
         fThread.detach();
     }
@@ -34,7 +34,7 @@ public:
     }
 
     void send_heartbeat() const {
-        OscSenderReceiver::instance().send("heartbeat", (float) fFrequencyMillis);
+        OscSenderReceiver::instance()->send("heartbeat", (float) fFrequencyMillis);
     }
 
 private:

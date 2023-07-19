@@ -23,7 +23,7 @@ void MOscPacketListener::ProcessMessage(const osc::ReceivedMessage &msg,
 //            }
     } catch (osc::Exception &e) {
 #ifdef DEBUG_OSC
-        KLANG_LOG("@klangstrom_arduino error in OSC listener: %s - %s", msg.AddressPattern(), e.what());
+        cerr << "@OSC error in OSC listener: " << msg.AddressPattern() << "" << e.what();
 #endif
     }
 }

@@ -35,7 +35,7 @@ public:
 
     void disconnect() override {
         fPeripheral.disconnect();
-        OscSenderReceiver::instance().send(NAME, fID, CMD_DISCONNECT);
+        OscSenderReceiver::instance()->send(NAME, fID, CMD_DISCONNECT);
     }
 
     static constexpr const char *NAME = "WHOOP 4A0934182";
@@ -85,7 +85,7 @@ private:
         cout << fixed << setprecision(0) << mHeartRate << " / ";
         Utils::print_byte_array(bytes);
 #endif
-        OscSenderReceiver::instance().send(NAME, fID, feature_heartrate.description, mHeartRate);
+        OscSenderReceiver::instance()->send(NAME, fID, feature_heartrate.description, mHeartRate);
     }
 
     void update_services() {
@@ -123,7 +123,7 @@ private:
     void connect_impl() {
         fPeripheral.connect();
         update_services();
-        OscSenderReceiver::instance().send(NAME, fID, CMD_CONNECT);
+        OscSenderReceiver::instance()->send(NAME, fID, CMD_CONNECT);
     }
 };
 

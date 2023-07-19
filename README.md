@@ -1,11 +1,11 @@
 # sendungsbewusstsein
 
-## build prerequisites
+## usage + build prerequisites
 
 - install CMake with homebrew `brew install cmake`
-- allow terminal application to use Bluetooth in `System Settings / Privacy & Security / Bluetooth` 
+- on macOS allow terminal application to use Bluetooth in `System Settings / Privacy & Security / Bluetooth` 
 
-![](./assets/allow-application-to-use-bluetooth.png)
+![allow-application-to-use-bluetooth](./assets/allow-application-to-use-bluetooth.png)
 
 *example for macOS 13.4.1 and iTerm*
 
@@ -28,11 +28,9 @@ Usage:
   -q, --quit                    quit application
   -i, --info                    print capabilities of all available devices
   -s, --scan [=arg(=5000)]      scan for available devices
-  -w, --watchdog [=arg(=2000)]  frequency of watchdog singals in milliseconds. 
-                                a value of 0 turns 
-                                the watchdog off.
-  -p, --peripherals arg         specify peripherals for connect or disconnect.
-                                names that contain space need to be surrounded by quotation marks. indices might change after scan.
+  -p, --peripherals arg         specify peripherals for connect or disconnect. names that contain 
+                                space need to be surrounded by quotation marks. indices might 
+                                change after scan.
       --connect [=arg(=name)]   connect to device either by name (e.g '-p "WHOOP 4A0934182" 
                                 --connect=name'), by address (e.g '-p 
                                 C6FBA-C7E8-0494-34C6-A54DF25AF596 --connect=address') or by index 
@@ -40,6 +38,15 @@ Usage:
       --disconnect [=arg(=name)]
                                 disconnect from device either by name, address or index (see 
                                 'connect')
+
+ OSC options:
+  -w, --watchdog [=arg(=2000)]  frequency of watchdog singals in milliseconds. a value of 0 turns 
+                                the watchdog off.
+  -a, --address [=arg(=127.0.0.1)]
+                                OSC message transmit address
+  -t, --transmit [=arg(=7000)]  port for transmitting messages
+  -r, --receive [=arg(=7001)]   port for receiveing messages
+  -m, --multicast               enable multicast broadcast
 ```
 
 the terminal mode can be quit by typing `--quit` or `-q`.
@@ -55,6 +62,8 @@ note, that device names that contain spaces must be surrounded by quotation mark
 ```
 $ ./sendungsbewusstsein --scan=2000 --connect "WHOOP 4A0934182" "Wahoo KICKR 3724"
 ```
+
+note, that can be no equal sign ( `=` ) after `--connect` or `--disconnect`.
 
 once connected, devices start transmitting information via OSC.
 

@@ -20,10 +20,11 @@ include_directories(cxxopts/include)
 # application
 include_directories(include)
 add_executable(sendungsbewusstsein
-        src/main.cpp
+        src/Console.cpp
         src/utils.cpp
         src/OscSenderReceiver.cpp
         src/MOscPacketListener.cpp
+        src/main.cpp
         ${OSCPACK_SRC}
 )
 set_target_properties(sendungsbewusstsein PROPERTIES LINK_FLAGS "-Wl,-S")

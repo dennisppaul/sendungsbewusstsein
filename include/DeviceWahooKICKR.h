@@ -26,7 +26,7 @@ public:
 
     void disconnect() override {
         fPeripheral.disconnect();
-        OscSenderReceiver::instance().send(NAME, fID, CMD_DISCONNECT);
+        OscSenderReceiver::instance()->send(NAME, fID, CMD_DISCONNECT);
     }
 
 private:
@@ -62,7 +62,7 @@ private:
     void connect_impl() {
         fPeripheral.connect();
         update_services();
-        OscSenderReceiver::instance().send(NAME, fID, CMD_CONNECT);
+        OscSenderReceiver::instance()->send(NAME, fID, CMD_CONNECT);
 
         cout << "+++ reading CHARACTERISTIC_FITNESS_MACHINE_FEATURE_R: ";
         Utils::print_byte_array_as_bits(
@@ -125,7 +125,7 @@ private:
         Utils::print_byte(bytes[1]);
         cout << endl;
 #endif
-        OscSenderReceiver::instance().send(NAME, fID, feature_indoor_bike_data.description, 0.0f);
+        OscSenderReceiver::instance()->send(NAME, fID, feature_indoor_bike_data.description, 0.0f);
     }
 
 
@@ -155,7 +155,7 @@ private:
         // TODO is the byte order reversed?
 //        uint16_t flags                        = (bytes[0] << 8) | bytes[1];
 //        auto instantaneous_power = static_cast<int16_t>((static_cast<uint16_t>(bytes[3]) << 8) | (bytes[2]));
-        int16_t instantaneous_power = ((int16_t) bytes[3] * 256) + (uint8_t) bytes[2]; // TODO this is just a quick dirty hack
+        int16_t instantaneous_power = ((int16_t) bytes[3] * 256) + (uint8_t) bytes[2]; // TODO this is just a quick dirty hack try `int16_t instantaneous_power = (bytes[3] << 8) | bytes[2];`
 //        uint16_t accumulated_torque           = (bytes[4] << 8) | bytes[5];
 //        uint32_t cumulative_wheel_revolutions = (bytes[6] << 24) | (bytes[7] << 16) | (bytes[8] << 8) | bytes[9];
 //        uint16_t last_wheel_event_time        = (bytes[10] << 8) | bytes[11];
@@ -178,7 +178,7 @@ private:
 //        cout << fixed << setprecision(0) << mHeartRate << " / ";
 //        Utils::print_byte_array(bytes);
 #endif
-        OscSenderReceiver::instance().send(NAME, fID, feature_cycling_power_measurement.description,
+        OscSenderReceiver::instance()->send(NAME, fID, feature_cycling_power_measurement.description,
                                            instantaneous_power);
     }
 };

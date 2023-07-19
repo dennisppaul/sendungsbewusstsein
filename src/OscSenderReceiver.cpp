@@ -3,17 +3,23 @@
 
 using namespace std;
 
-void OscSenderReceiver::osc_thread() {
-    cout << "+++ @OSC / start listening on " << OSC_TRANSMIT_ADDRESS << ":" << OSC_RECEIVE_PORT << endl;
+OscSenderReceiver *OscSenderReceiver::fInstance = nullptr;
+
+void OscSenderReceiver::osc_thread(const char *address,
+                                   int port_transmit,
+                                   int port_receive,
+                                   bool use_muilticast) {
+    cout << "+++ @OSC start listening on :" << port_transmit
+         << " + receiving on " << address << ":" << port_receive << endl;
 
     try {
-#ifdef USE_UDP_MULTICAST
-        MOscPacketListener mOscListener(this);
-            PacketListener *listener_ = &mOscListener;
-            IpEndpointName mIpEndpointName = IpEndpointName(OSC_TRANSMIT_ADDRESS, OSC_RECEIVE_PORT);
+        if (use_muilticast) {
+            MOscPacketListener mOscListener(this);
+            PacketListener *listener_      = &mOscListener;
+            IpEndpointName mIpEndpointName = IpEndpointName(address, port_receive);
             if (mIpEndpointName.IsMulticastAddress()) {
 #ifdef DEBUG_OSC
-                LOG("@klangstrom_arduino using UDP Multicast");
+                cout << "+++ @OSC using UDP Multicast" << endl;
 #endif
                 UdpSocket mUdpSocket;
                 mUdpSocket.SetAllowReuse(true);
@@ -22,15 +28,15 @@ void OscSenderReceiver::osc_thread() {
                 mux_.AttachSocketListener(&mUdpSocket, listener_);
                 mux_.Run();
             } else {
-                UdpListeningReceiveSocket s(IpEndpointName(IpEndpointName::ANY_ADDRESS, OSC_RECEIVE_PORT),
+                UdpListeningReceiveSocket s(IpEndpointName(IpEndpointName::ANY_ADDRESS, port_receive),
                                             &mOscListener);
                 s.Run();
             }
-#else
-        MOscPacketListener mOscListener(this);
-        UdpListeningReceiveSocket s(IpEndpointName(IpEndpointName::ANY_ADDRESS, OSC_RECEIVE_PORT), &mOscListener);
-        s.Run();
-#endif
+        } else {
+            MOscPacketListener mOscListener(this);
+            UdpListeningReceiveSocket s(IpEndpointName(IpEndpointName::ANY_ADDRESS, port_receive), &mOscListener);
+            s.Run();
+        }
     } catch (exception &e) {
         string mError = e.what();
         cerr << "+++ @OSC / error: " << mError << endl;

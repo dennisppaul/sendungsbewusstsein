@@ -7,18 +7,33 @@
 #include "osc/OscOutboundPacketStream.h"
 #include "osc/OscReceivedElements.h"
 
-#define OSC_TRANSMIT_ADDRESS        "127.0.0.1"
-#define OSC_RECEIVE_PORT            7001
-#define OSC_TRANSMIT_PORT           7000
-//#define USE_UDP_MULTICAST
+#define DEBUG_OSC
+#define DEFAULT_OSC_TRANSMIT_ADDRESS        "127.0.0.1"
+#define DEFAULT_OSC_TRANSMIT_PORT           7000
+#define DEFAULT_OSC_RECEIVE_PORT            7001
+#define DEFAULT_USE_UDP_MULTICAST           false
 
 using namespace std;
 
 class OscSenderReceiver {
 public:
-    static OscSenderReceiver &instance() {
-        static OscSenderReceiver instance;
-        return instance;
+
+    static OscSenderReceiver *init(const char *address, int port_transmit, int port_receive, bool use_muilticast) {
+        if (fInstance == nullptr) {
+            fInstance = new OscSenderReceiver(address, port_transmit, port_receive, use_muilticast);
+        }
+        return fInstance;
+    }
+
+    static OscSenderReceiver *instance() {
+        if (fInstance == nullptr) {
+            cout << "+++ @OSC starting OSC with default values" << endl;
+            fInstance = new OscSenderReceiver(DEFAULT_OSC_TRANSMIT_ADDRESS,
+                                              DEFAULT_OSC_TRANSMIT_PORT,
+                                              DEFAULT_OSC_RECEIVE_PORT,
+                                              DEFAULT_USE_UDP_MULTICAST);
+        }
+        return fInstance;
     }
 
     //    OscSenderReceiver(const OscManager &copy) : mOSCThread(copy.mOSCThread), mTransmitSocket(copy.mTransmitSocket) {}
@@ -132,26 +147,39 @@ public:
     }
 
 private:
+    static OscSenderReceiver    *fInstance;
     static const constexpr char *OSC_MSG                        = ("sendungsbewusstsein");
     static const constexpr char *OSC_MSG_DELIMITER              = ("/");
     static const uint16_t       OSC_TRANSMIT_OUTPUT_BUFFER_SIZE = 1024;
     thread                      *mOSCThread                     = nullptr;
     UdpTransmitSocket           *mTransmitSocket                = nullptr;
+    bool                        fUseMulticast;
 
-    OscSenderReceiver() {
-        initialize_transmit_socket();
-        mOSCThread = new thread(&OscSenderReceiver::osc_thread, this);
+    OscSenderReceiver(const char *address,
+                      int port_transmit,
+                      int port_receive,
+                      bool use_muilticast) :
+            fUseMulticast(use_muilticast) {
+        initialize_transmit_socket(address, port_transmit);
+        mOSCThread = new thread(&OscSenderReceiver::osc_thread,
+                                this,
+                                address,
+                                port_transmit,
+                                port_receive,
+                                use_muilticast);
     }
 
     static bool addr_pattern_equals(const osc::ReceivedMessage &msg, const char *pAddrPatter) {
         return (strcmp(msg.AddressPattern(), pAddrPatter) == 0);
     }
 
-    void osc_thread();
+    void osc_thread(const char *address,
+                    int port_transmit,
+                    int port_receive,
+                    bool use_muilticast);
 
-    void initialize_transmit_socket() {
+    void initialize_transmit_socket(const char *address, int port_transmit) {
         // TODO why for the love of it all is `mTransmitSocket` a `nullptr` twice?!?
-        mTransmitSocket = new UdpTransmitSocket(IpEndpointName(OSC_TRANSMIT_ADDRESS, OSC_TRANSMIT_PORT));
+        mTransmitSocket = new UdpTransmitSocket(IpEndpointName(address, port_transmit));
     }
 };
-
