@@ -1,3 +1,7 @@
+// TODO implement saving connected devices ( + disconnect fucntionality )
+// TODO implement writing to BLE devices
+// TODO maybe change architecture to a model where characteristics can be subscribed to e.g ( subscribe to `SERVICE_CYCLING_POWER + CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N` or `SERVICE_FITNESS_MACHINE + CHARACTERISTIC_INDOOR_BIKE_DATA_N` ) this would also require to querry a device for available services/characteristic pairs
+
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -15,6 +19,10 @@
 #include "OscSenderReceiver.h"
 #include "Watchdog.h"
 
+#include "CharacteristicsGATT.h"
+#include "CharacteristicHeartRateMeasurment.h"
+#include "CharacteristicCyclingPowerMeasurement.h"
+
 using namespace std;
 using namespace SimpleBLE;
 
@@ -26,9 +34,9 @@ static const string CONNECTION_TYPE_NAME                 = "name";
 static const string CONNECTION_TYPE_ADDRESS              = "address";
 static const string CONNECTION_TYPE_INDEX                = "index";
 
-vector<Device> connected_devices;
-int            fCurrentDeviceID   = NO_DEVICE_FOUND;
-int            fWatchdogFrequency = DEFAULT_WATCHDOG_SIGNAL_FREQUENCY_MS;
+vector<Device *> connected_devices;
+int              fCurrentDeviceID   = NO_DEVICE_FOUND;
+int              fWatchdogFrequency = DEFAULT_WATCHDOG_SIGNAL_FREQUENCY_MS;
 
 struct ApplicationProperties {
     string OSC_address           = DEFAULT_OSC_TRANSMIT_ADDRESS;
@@ -199,7 +207,8 @@ int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
         return current_device_ID;
     }
 
-    console << "found " << mDeviceIDs.size() << " to connect to." << endl;
+    console << "found " << mDeviceIDs.size() << " device" << (mDeviceIDs.size() > 1 ? "s" : "") << " to connect to."
+            << endl;
     for (int i: mDeviceIDs) {
         auto peripheral = peripherals[i];
         // TODO actually connect to devices
@@ -208,12 +217,14 @@ int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
             // TODO safe instance somehow
             auto *device = new DeviceWHOOP4(current_device_ID, peripheral);
             console << peripheral.identifier() << " <> " << string(device->name()) << endl;
+            connected_devices.push_back(device);
 //            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
         } else if (peripheral.identifier().starts_with("Wahoo KICKR")) {
             current_device_ID++;
             // TODO safe instance somehow
             auto *device = new DeviceWahooKICKR(current_device_ID, peripheral);
             console << peripheral.identifier() << " <> " << string(device->name()) << endl;
+            connected_devices.push_back(device);
 //            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
         } else if (peripheral.identifier().starts_with("KICKR CORE")) {
             current_device_ID++;
@@ -223,8 +234,10 @@ int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
             console << peripheral.identifier() << " <> " << string(device->name())
                     << " ( note this is just a very dirty hack to test if 'KICKR CORE' works like 'Wahoo KICKR' )"
                     << endl;
+            connected_devices.push_back(device);
         } else {
             cerr << "+++ could not connect to device " << peripheral.identifier() << endl;
+            break;
         }
         console << "connected OSC device ID of device "
                 << peripheral.identifier()
@@ -242,6 +255,8 @@ void handle_disconnect(const string &type, const vector<string> &input) {
     for (const string &t: input) {
         console << t << endl;
     }
+//    `connected_devices`;
+
 }
 
 void print_device_capabilities(vector<SimpleBLE::Peripheral> &peripherals) {
@@ -306,6 +321,7 @@ void print_prompt() {
 
 bool parse_input(Adapter &adapter,
                  vector<SimpleBLE::Peripheral> &peripherals,
+                 Watchdog *watchdog,
                  int argc, char *argv[]) {
     static const string CMD_CONNECT          = "connect";
     static const string CMD_CONNECT_CMD      = "" + CMD_CONNECT;
@@ -374,6 +390,9 @@ bool parse_input(Adapter &adapter,
         if (result.count("watchdog")) {
             console << "watchdog frequency = " << result["watchdog"].as<int>() << endl;
             fWatchdogFrequency = result["watchdog"].as<int>();
+            if (watchdog != nullptr) {
+                watchdog->set_frequency(fWatchdogFrequency);
+            }
         }
 
         if (result.count("address")) {
@@ -444,7 +463,7 @@ bool parse_input_vec(Adapter &adapter,
         strcpy(argv[i], args_vec[i].c_str());
     }
 
-    bool mExit = parse_input(adapter, peripherals, argc, argv);
+    bool mExit = parse_input(adapter, peripherals, watchdog, argc, argv);
     delete[] argv;
     return mExit;
 }
@@ -496,6 +515,17 @@ void osc_callback() {}
 int main(int argc, char *argv[]) {
     console << "Sendungsbewusstsein" << endl;
 
+    CharacteristicCyclingPowerMeasurement::register_characteristic();
+    CharacteristicHeartRateMeasurment::register_characteristic();
+
+    unique_ptr<CharacteristicAbstract> mCyclingPowerMeasurement = CharacteristicFactory::create(SERVICE_CYCLING_POWER,
+                                                                                                CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N);
+    unique_ptr<CharacteristicAbstract> mHeartRateMeasurement    = CharacteristicFactory::create(SERVICE_HEART_RATE,
+                                                                                                CHARACTERISTIC_HEART_RATE_MEASUREMENT_N);
+    if (mHeartRateMeasurement) {
+        mHeartRateMeasurement->subscribe();
+    }
+
     /* connect to adapter */
     auto adapter_optional = Utils::getAdapter();
     if (!adapter_optional.has_value()) {
@@ -510,7 +540,7 @@ int main(int argc, char *argv[]) {
 
     /* CLI args */
     if (argc > 1) {
-        mExit = parse_input(adapter, peripherals, argc, argv); /* parse CLI args */
+        mExit = parse_input(adapter, peripherals, nullptr, argc, argv); /* parse CLI args */
     }
 
     /* OSC */
@@ -521,8 +551,7 @@ int main(int argc, char *argv[]) {
     this_thread::sleep_for(std::chrono::seconds(2));
 
     /* watchdog */
-    // TODO implement option to turn off watchdog
-    Watchdog watchdog;
+    Watchdog watchdog; // TODO consider making `watchdog` global
     init_watchdog(watchdog);
 
     /* handle CLI input */
