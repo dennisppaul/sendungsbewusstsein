@@ -12,8 +12,6 @@
 
 #include "Console.h"
 #include "Device.h"
-#include "DeviceWHOOP4.h"
-#include "DeviceWahooKICKR.h"
 #include "utils.hpp"
 #include "StringUtils.h"
 #include "OscSenderReceiver.h"
@@ -102,7 +100,7 @@ int find_device_by_name(vector<SimpleBLE::Peripheral> &peripherals, const string
         if (starts_with_ignore_case(peripherals[i].identifier(), name)) {
 //        if (peripherals[i].identifier().starts_with(name)) {
 //        if (peripherals[i].identifier() == name) {
-            console << "FOUND by name > "
+            console << "FOUND by name >"
                     << " name:[" << peripherals[i].identifier() << "]"
                     << " address:[" << peripherals[i].address() << "]"
                     << " index:[" << i << "] "
@@ -116,7 +114,7 @@ int find_device_by_name(vector<SimpleBLE::Peripheral> &peripherals, const string
 int find_device_by_address(vector<SimpleBLE::Peripheral> &peripherals, const string &address) {
     for (int i = 0; i < peripherals.size(); i++) {
         if (peripherals[i].address() == address) {
-            console << "FOUND by address > "
+            console << "FOUND by address >"
                     << " name:[" << peripherals[i].identifier() << "]"
                     << " address:[" << peripherals[i].address() << "]"
                     << " index:[" << i << "] "
@@ -211,34 +209,39 @@ int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
             << endl;
     for (int i: mDeviceIDs) {
         auto peripheral = peripherals[i];
-        // TODO actually connect to devices
-        if (peripheral.identifier().starts_with("WHOOP")) {
-            current_device_ID++;
-            // TODO safe instance somehow
-            auto *device = new DeviceWHOOP4(current_device_ID, peripheral);
-            console << peripheral.identifier() << " <> " << string(device->name()) << endl;
-            connected_devices.push_back(device);
-//            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
-        } else if (peripheral.identifier().starts_with("Wahoo KICKR")) {
-            current_device_ID++;
-            // TODO safe instance somehow
-            auto *device = new DeviceWahooKICKR(current_device_ID, peripheral);
-            console << peripheral.identifier() << " <> " << string(device->name()) << endl;
-            connected_devices.push_back(device);
-//            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
-        } else if (peripheral.identifier().starts_with("KICKR CORE")) {
-            current_device_ID++;
-            // TODO safe instance somehow
-            // TODO this uses KICKR class for KICKR CORE
-            auto *device = new DeviceWahooKICKR(current_device_ID, peripheral);
-            console << peripheral.identifier() << " <> " << string(device->name())
-                    << " ( note this is just a very dirty hack to test if 'KICKR CORE' works like 'Wahoo KICKR' )"
-                    << endl;
-            connected_devices.push_back(device);
-        } else {
-            cerr << "+++ could not connect to device " << peripheral.identifier() << endl;
-            break;
-        }
+
+        /* test for supported characteristics */
+        current_device_ID++;
+        Device *mDevice = new Device(current_device_ID, &peripheral);
+
+//        // TODO actually connect to devices
+//        if (peripheral.identifier().starts_with("WHOOP")) {
+//            current_device_ID++;
+//            // TODO safe instance somehow
+//            auto *device = new DeviceWHOOP4(current_device_ID, peripheral);
+//            console << peripheral.identifier() << " <> " << string(device->name()) << endl;
+//            connected_devices.push_back(device);
+////            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
+//        } else if (peripheral.identifier().starts_with("Wahoo KICKR")) {
+//            current_device_ID++;
+//            // TODO safe instance somehow
+//            auto *device = new DeviceWahooKICKR(current_device_ID, peripheral);
+//            console << peripheral.identifier() << " <> " << string(device->name()) << endl;
+//            connected_devices.push_back(device);
+////            connected_peripherals.push_back(peripheral); // TODO this need to be handle VERY differently
+//        } else if (peripheral.identifier().starts_with("KICKR CORE")) {
+//            current_device_ID++;
+//            // TODO safe instance somehow
+//            // TODO this uses KICKR class for KICKR CORE
+//            auto *device = new DeviceWahooKICKR(current_device_ID, peripheral);
+//            console << peripheral.identifier() << " <> " << string(device->name())
+//                    << " ( note this is just a very dirty hack to test if 'KICKR CORE' works like 'Wahoo KICKR' )"
+//                    << endl;
+//            connected_devices.push_back(device);
+//        } else {
+//            cerr << "+++ could not connect to device " << peripheral.identifier() << endl;
+//            break;
+//        }
         console << "connected OSC device ID of device "
                 << peripheral.identifier()
                 << " is "
@@ -518,13 +521,13 @@ int main(int argc, char *argv[]) {
     CharacteristicCyclingPowerMeasurement::register_characteristic();
     CharacteristicHeartRateMeasurment::register_characteristic();
 
-    unique_ptr<CharacteristicAbstract> mCyclingPowerMeasurement = CharacteristicFactory::create(SERVICE_CYCLING_POWER,
-                                                                                                CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N);
-    unique_ptr<CharacteristicAbstract> mHeartRateMeasurement    = CharacteristicFactory::create(SERVICE_HEART_RATE,
-                                                                                                CHARACTERISTIC_HEART_RATE_MEASUREMENT_N);
-    if (mHeartRateMeasurement) {
-        mHeartRateMeasurement->subscribe();
-    }
+//    unique_ptr<CharacteristicAbstract> mCyclingPowerMeasurement = CharacteristicFactory::create(SERVICE_CYCLING_POWER,
+//                                                                                                CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N);
+//    unique_ptr<CharacteristicAbstract> mHeartRateMeasurement    = CharacteristicFactory::create(SERVICE_HEART_RATE,
+//                                                                                                CHARACTERISTIC_HEART_RATE_MEASUREMENT_N);
+//    if (mHeartRateMeasurement) {
+//        mHeartRateMeasurement->subscribe();
+//    }
 
     /* connect to adapter */
     auto adapter_optional = Utils::getAdapter();
