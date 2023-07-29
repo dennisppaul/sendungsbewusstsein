@@ -212,7 +212,9 @@ int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
 
         /* test for supported characteristics */
         current_device_ID++;
-        Device *mDevice = new Device(current_device_ID, &peripheral);
+        auto *mDevice = new Device(current_device_ID, &peripheral);
+        // TODO store connected devices only if supported characteristics were found
+        connected_devices.push_back(mDevice);
 
 //        // TODO actually connect to devices
 //        if (peripheral.identifier().starts_with("WHOOP")) {

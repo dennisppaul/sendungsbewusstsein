@@ -17,6 +17,7 @@ public:
                 << " with characteristic "
                 << CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N
                 << std::endl;
+        // TODO implement
     }
 
     void unsubscribe() override {}

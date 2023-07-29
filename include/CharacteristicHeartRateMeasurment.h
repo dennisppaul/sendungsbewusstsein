@@ -55,6 +55,7 @@ private:
     constexpr static const char *fName = "heartrate";
 
     void notify(ByteArray bytes) {
+        // TODO read specs to parse payload properly
         const float mHeartRate = bytes[1];
         OscSenderReceiver::instance()->send(fID, fName, mHeartRate);
     }

@@ -11,10 +11,6 @@ public:
 
     virtual ~CharacteristicAbstract() = default;
 
-//    void set_peripheral(Peripheral *peripheral) { fPeripheral = peripheral; };
-//
-//    void set_ID(const int16_t ID) { fID = ID; };
-
     virtual void subscribe() = 0;
 
     virtual void unsubscribe() = 0;

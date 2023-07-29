@@ -112,111 +112,6 @@ public:
         }
     }
 
-
-//    void send(const string &address_pattern, const int ID, const float value) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-//                                                            string(OSC_MSG) +
-//                                                            string(OSC_MSG_DELIMITER) +
-//                                                            address_pattern;
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              << ID
-//              << value
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
-
-//    void send(const string &address_pattern,
-//              const int ID,
-//              const char *command,
-//              const float value) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-//                                                            string(OSC_MSG) +
-//                                                            string(OSC_MSG_DELIMITER) +
-//                                                            address_pattern;
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              << ID
-//              << command
-//              << value
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
-
-//    void send(const string &address_pattern,
-//              const string &command,
-//              const int ID,
-//              const float value) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-//                                                            string(OSC_MSG) +
-//                                                            string(OSC_MSG_DELIMITER) +
-//                                                            address_pattern +
-//                                                            string(OSC_MSG_DELIMITER) +
-//                                                            command;
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              << ID
-//              << value
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
-
-//    void send(const string &address_pattern,
-//              const string &command,
-//              const int ID) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-//                                                            string(OSC_MSG) +
-//                                                            string(OSC_MSG_DELIMITER) +
-//                                                            address_pattern +
-//                                                            string(OSC_MSG_DELIMITER) +
-//                                                            command;
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              << ID
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
-
-//    void send(const string &address_pattern,
-//              const int ID,
-//              const char *command) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-//                                                            string(OSC_MSG) +
-//                                                            string(OSC_MSG_DELIMITER) +
-//                                                            address_pattern;
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              << ID
-//              << command
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
-
     void process(const osc::ReceivedMessage &msg) {
 //        osc::ReceivedMessageArgumentStream args = msg.ArgumentStream();
 //        int                                mSerialPort;
@@ -267,7 +162,6 @@ private:
                     bool use_muilticast);
 
     void initialize_transmit_socket(const char *address, int port_transmit) {
-        // TODO why for the love of it all is `mTransmitSocket` a `nullptr` twice?!?
         mTransmitSocket = new UdpTransmitSocket(IpEndpointName(address, port_transmit));
     }
 };
