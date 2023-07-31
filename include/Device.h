@@ -12,45 +12,56 @@ using namespace std;
 
 class Device {
 public:
-    static constexpr const char *CMD_CONNECT    = "connect";
-    static constexpr const char *CMD_DISCONNECT = "disconnect";
+    static constexpr const char *CMD_CONNECT                   = "connect";
+    static constexpr const char *CMD_DISCONNECT                = "disconnect";
+    static constexpr const char *CMD_SUPPORTED_CHARACTERISTICS = "supported_characteristics";
 
-    Device(int osc_index, Peripheral *peripheral) : fID(osc_index),
-                                                    fPeripheral(peripheral),
-                                                    fName(peripheral->identifier()) {
+    Device(Peripheral *peripheral, int connected_device_index) :
+            fPeripheral(peripheral),
+            fConnectedDeviceIndex(connected_device_index),
+            fName(peripheral->identifier()) {
         connect();
         update_services_and_characteristics();
         collect_supported_characteristics();
     }
 
     void collect_supported_characteristics() {
+        int       mSupportedCharacteristicIndex = -1;
         for (auto &service: fPeripheral->services()) {
             for (auto &characteristic: service.characteristics()) {
-                unique_ptr<CharacteristicAbstract> mCharacteristic = CharacteristicFactory::create(service.uuid(),
-                                                                                                   characteristic.uuid(),
-                                                                                                   fPeripheral,
-                                                                                                   fID);
+                mSupportedCharacteristicIndex++;
+                auto mCharacteristic = CharacteristicFactory::create(service.uuid(),
+                                                                     characteristic.uuid(),
+                                                                     fPeripheral,
+                                                                     fConnectedDeviceIndex,
+                                                                     mSupportedCharacteristicIndex);
                 if (mCharacteristic) {
-                    console << "FOUND:: ";
-                    console << "Service: " << service.uuid();
-                    console << " Characteristic: " << characteristic.uuid();
-                    console << " as '" << mCharacteristic->name() << "'";
-                    console << endl;
-                    mCharacteristic->subscribe();
+                    console << "found supported characteristic: '"
+                            << mCharacteristic->name()
+                            << "' ( "
+                            << "service: " << service.uuid()
+                            << ", characteristic: " << characteristic.uuid()
+                            << " )"
+                            << endl;
+                    mCharacteristic->init();
                     supported_characeristics.push_back(std::move(mCharacteristic));
+                } else {
+                    mSupportedCharacteristicIndex--;
                 }
             }
         }
+        OscSenderReceiver::instance()->send(fConnectedDeviceIndex,
+                                            CMD_SUPPORTED_CHARACTERISTICS,
+                                            mSupportedCharacteristicIndex + 1);
     }
 
     void connect() {
-        OscSenderReceiver::instance()->send(fID, CMD_CONNECT, fName.c_str());
+        OscSenderReceiver::instance()->send(fConnectedDeviceIndex, CMD_CONNECT, fName.c_str());
         fPeripheral->connect();
     }
 
     void disconnect() {
-        OscSenderReceiver::instance()->send(fID, CMD_DISCONNECT, fName.c_str());
-
+        OscSenderReceiver::instance()->send(fConnectedDeviceIndex, CMD_DISCONNECT, fName.c_str());
     }
 
     std::string name() {
@@ -58,12 +69,16 @@ public:
     }
 
     [[nodiscard]] int ID() const {
-        return fID;
+        return fConnectedDeviceIndex;
+    }
+
+    bool has_supported_characteristics() {
+        return !supported_characeristics.empty();
     }
 
 private:
     std::string                                fName;
-    const int                                  fID;
+    const int                                  fConnectedDeviceIndex;
     Peripheral                                 *fPeripheral;
     vector<pair<BluetoothUUID, BluetoothUUID>> uuids;
     vector<unique_ptr<CharacteristicAbstract>> supported_characeristics;

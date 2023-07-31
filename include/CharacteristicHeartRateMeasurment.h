@@ -6,9 +6,16 @@
 
 class CharacteristicHeartRateMeasurment : public CharacteristicAbstract {
 public:
+    CharacteristicHeartRateMeasurment(Peripheral *peripheral,
+                                      int connected_device_index,
+                                      int supported_characteristic_index)
+            : CharacteristicAbstract(peripheral,
+                                     connected_device_index,
+                                     supported_characteristic_index) {}
 
-    CharacteristicHeartRateMeasurment(Peripheral *peripheral, int16_t ID)
-            : CharacteristicAbstract(peripheral, ID) {}
+    void init() override {
+        subscribe();
+    }
 
     void subscribe() override {
         console
@@ -28,6 +35,10 @@ public:
         fPeripheral->notify(SERVICE_HEART_RATE,
                             CHARACTERISTIC_HEART_RATE_MEASUREMENT_N,
                             mHeartRateCallback);
+        OscSenderReceiver::instance()->send(fConnectedDeviceIndex,
+                                            CMD_SUBSCRIBE,
+                                            fName,
+                                            fSupportedCharacteristicIndex);
     }
 
     void unsubscribe() override {
@@ -42,10 +53,14 @@ public:
     void static register_characteristic() {
         CharacteristicFactory::register_characteristic(SERVICE_HEART_RATE,
                                                        CHARACTERISTIC_HEART_RATE_MEASUREMENT_N,
-                                                       [](Peripheral *peripheral,
-                                                          int ID) -> std::unique_ptr<CharacteristicAbstract> {
+                                                       [](
+                                                               Peripheral *peripheral,
+                                                               int connected_device_index,
+                                                               int supported_characteristic_index) -> std::unique_ptr<CharacteristicAbstract> {
                                                            return std::make_unique<CharacteristicHeartRateMeasurment>(
-                                                                   peripheral, ID);
+                                                                   peripheral,
+                                                                   connected_device_index,
+                                                                   supported_characteristic_index);
                                                        });
     }
 
@@ -57,6 +72,6 @@ private:
     void notify(ByteArray bytes) {
         // TODO read specs to parse payload properly
         const float mHeartRate = bytes[1];
-        OscSenderReceiver::instance()->send(fID, fName, mHeartRate);
+        OscSenderReceiver::instance()->send(fConnectedDeviceIndex, fName, mHeartRate);
     }
 };

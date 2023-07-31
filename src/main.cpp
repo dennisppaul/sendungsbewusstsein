@@ -33,8 +33,8 @@ static const string CONNECTION_TYPE_ADDRESS              = "address";
 static const string CONNECTION_TYPE_INDEX                = "index";
 
 vector<Device *> connected_devices;
-int              fCurrentDeviceID   = NO_DEVICE_FOUND;
-int              fWatchdogFrequency = DEFAULT_WATCHDOG_SIGNAL_FREQUENCY_MS;
+int              fCurrentConnectedDeviceID = NO_DEVICE_FOUND;
+int              fWatchdogFrequency        = DEFAULT_WATCHDOG_SIGNAL_FREQUENCY_MS;
 
 struct ApplicationProperties {
     string OSC_address           = DEFAULT_OSC_TRANSMIT_ADDRESS;
@@ -44,26 +44,26 @@ struct ApplicationProperties {
 
 } default_application_properties;
 
-void scan_for_peripherals(Adapter &adapter,
-                          vector<SimpleBLE::Peripheral> &peripherals,
-                          int timeout_ms,
-                          bool verbose) {
+void scan_for_devices(Adapter &adapter,
+                      vector<SimpleBLE::Peripheral> &devices,
+                      int timeout_ms,
+                      bool verbose) {
     console << "scanning for available devices ( " << timeout_ms << "ms )" << endl;
 
-    peripherals.clear();
+    devices.clear();
 
     adapter.set_callback_on_scan_found(
-            [&](const SimpleBLE::Peripheral &peripheral) { peripherals.push_back(peripheral); });
+            [&](const SimpleBLE::Peripheral &mDevice) { devices.push_back(mDevice); });
     adapter.set_callback_on_scan_start([]() { console << "scan started … "; });
     adapter.set_callback_on_scan_stop([]() { console << "finished." << endl; });
     adapter.scan_for(timeout_ms);
 
     if (verbose) {
         console << "the following devices were found:" << endl;
-        for (size_t i = 0; i < peripherals.size(); i++) {
+        for (size_t i = 0; i < devices.size(); i++) {
             console << "[" << i << "] "
-                    << peripherals[i].identifier()
-                    << " [" << peripherals[i].address() << "]"
+                    << devices[i].identifier()
+                    << " [" << devices[i].address() << "]"
                     << endl;
         }
     }
@@ -94,15 +94,15 @@ void scan_for_peripherals(Adapter &adapter,
 //    }
 }
 
-int find_device_by_name(vector<SimpleBLE::Peripheral> &peripherals, const string &name) {
-    for (int i = 0; i < peripherals.size(); i++) {
+int find_device_by_name(vector<SimpleBLE::Peripheral> &devices, const string &name) {
+    for (int i = 0; i < devices.size(); i++) {
         // TODO check if it is better to test for equality or `starts_with`
-        if (starts_with_ignore_case(peripherals[i].identifier(), name)) {
-//        if (peripherals[i].identifier().starts_with(name)) {
-//        if (peripherals[i].identifier() == name) {
-            console << "FOUND by name >"
-                    << " name:[" << peripherals[i].identifier() << "]"
-                    << " address:[" << peripherals[i].address() << "]"
+        if (starts_with_ignore_case(devices[i].identifier(), name)) {
+//        if (devices[i].identifier().starts_with(name)) {
+//        if (devices[i].identifier() == name) {
+            console << "found by name >"
+                    << " name:[" << devices[i].identifier() << "]"
+                    << " address:[" << devices[i].address() << "]"
                     << " index:[" << i << "] "
                     << endl;
             return i;
@@ -111,12 +111,12 @@ int find_device_by_name(vector<SimpleBLE::Peripheral> &peripherals, const string
     return NO_DEVICE_FOUND;
 }
 
-int find_device_by_address(vector<SimpleBLE::Peripheral> &peripherals, const string &address) {
-    for (int i = 0; i < peripherals.size(); i++) {
-        if (peripherals[i].address() == address) {
-            console << "FOUND by address >"
-                    << " name:[" << peripherals[i].identifier() << "]"
-                    << " address:[" << peripherals[i].address() << "]"
+int find_device_by_address(vector<SimpleBLE::Peripheral> &devices, const string &address) {
+    for (int i = 0; i < devices.size(); i++) {
+        if (devices[i].address() == address) {
+            console << "found by address >"
+                    << " name:[" << devices[i].identifier() << "]"
+                    << " address:[" << devices[i].address() << "]"
                     << " index:[" << i << "] "
                     << endl;
             return i;
@@ -130,18 +130,17 @@ void failed_connection_type(const string &type) {
     console << CONNECTION_TYPE_NAME << endl;
     console << CONNECTION_TYPE_ADDRESS << endl;
     console << CONNECTION_TYPE_INDEX << endl;
-    console << "found connection type: " << endl;
+    console << "however, found connection type: " << endl;
     console << type << endl;
 }
 
 bool compile_device_IDs(vector<int> &device_IDs,
-                        vector<SimpleBLE::Peripheral> &peripherals,
+                        vector<SimpleBLE::Peripheral> &devices,
                         const string &type,
                         const vector<string> &input) {
     if (type.starts_with(CONNECTION_TYPE_NAME)) {
-        console << "@todo connect '" << CONNECTION_TYPE_NAME << "'" << endl;
         for (const string &t: input) {
-            int mPeripheralID = find_device_by_name(peripherals, t);
+            int mPeripheralID = find_device_by_name(devices, t);
             if (mPeripheralID != NO_DEVICE_FOUND) {
                 device_IDs.push_back(mPeripheralID);
             } else {
@@ -150,9 +149,8 @@ bool compile_device_IDs(vector<int> &device_IDs,
         }
         return !device_IDs.empty();
     } else if (type.starts_with(CONNECTION_TYPE_ADDRESS)) {
-        console << "@todo connect '" << CONNECTION_TYPE_ADDRESS << "'" << endl;
         for (const string &t: input) {
-            int mPeripheralID = find_device_by_address(peripherals, t);
+            int mPeripheralID = find_device_by_address(devices, t);
             if (mPeripheralID != NO_DEVICE_FOUND) {
                 device_IDs.push_back(mPeripheralID);
             } else {
@@ -161,7 +159,6 @@ bool compile_device_IDs(vector<int> &device_IDs,
         }
         return !device_IDs.empty();
     } else if (type.starts_with(CONNECTION_TYPE_INDEX)) {
-        console << "@todo connect " << CONNECTION_TYPE_INDEX << endl;
         for (const string &t: input) {
             int mPeripheralID = NO_DEVICE_FOUND;
             try {
@@ -169,7 +166,7 @@ bool compile_device_IDs(vector<int> &device_IDs,
             } catch (const exception &e) {
                 console << "could not convert index '" << t << "' to number: " << e.what() << endl;
             }
-            if (mPeripheralID > NO_DEVICE_FOUND && mPeripheralID < peripherals.size()) {
+            if (mPeripheralID > NO_DEVICE_FOUND && mPeripheralID < devices.size()) {
                 device_IDs.push_back(mPeripheralID);
             } else {
                 console << "could not find index '" << t << "'." << endl;
@@ -190,31 +187,50 @@ vector<string> sanitze_device_identifiers(const vector<string> &input) {
     return mInput;
 }
 
-int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
+int handle_connect(vector<SimpleBLE::Peripheral> &devices,
                    const string &type,
                    const vector<string> &input,
-                   int current_device_ID) {
+                   int current_connected_device_ID) {
     vector<int> mDeviceIDs;
     bool        mSuccess = compile_device_IDs(mDeviceIDs,
-                                              peripherals,
+                                              devices,
                                               type,
                                               sanitze_device_identifiers(input));
 
     if (!mSuccess) {
         console << "could not connect to any device." << endl;
-        return current_device_ID;
+        return current_connected_device_ID;
     }
 
-    console << "found " << mDeviceIDs.size() << " device" << (mDeviceIDs.size() > 1 ? "s" : "") << " to connect to."
+    console << "found "
+            << mDeviceIDs.size()
+            << " device"
+            << (mDeviceIDs.size() > 1 ? "s" : "") << " to connect to."
             << endl;
     for (int i: mDeviceIDs) {
-        auto peripheral = peripherals[i];
+        auto device = devices[i];
 
         /* test for supported characteristics */
-        current_device_ID++;
-        auto *mDevice = new Device(current_device_ID, &peripheral);
-        // TODO store connected devices only if supported characteristics were found
-        connected_devices.push_back(mDevice);
+        current_connected_device_ID++;
+        auto *mDevice = new Device(&device, current_connected_device_ID);
+        if (mDevice->has_supported_characteristics()) {
+            connected_devices.push_back(mDevice);
+            console << "connected device '"
+                    << device.identifier()
+                    << "' with OSC ID "
+                    << current_connected_device_ID
+                    << endl;
+        } else {
+            console
+                    << "warning device '"
+                    << device.identifier()
+                    << "' has no supported services.";
+            mDevice->disconnect();
+            console
+                    << " … disconnecting device."
+                    << endl;
+            delete mDevice;
+        }
 
 //        // TODO actually connect to devices
 //        if (peripheral.identifier().starts_with("WHOOP")) {
@@ -244,45 +260,61 @@ int handle_connect(vector<SimpleBLE::Peripheral> &peripherals,
 //            cerr << "+++ could not connect to device " << peripheral.identifier() << endl;
 //            break;
 //        }
-        console << "connected OSC device ID of device "
-                << peripheral.identifier()
-                << " is "
-                << current_device_ID
-                << endl;
     }
-    return current_device_ID;
+    return current_connected_device_ID;
 }
 
-void handle_disconnect(const string &type, const vector<string> &input) {
+void handle_disconnect(vector<SimpleBLE::Peripheral> &devices,
+                       const string &type,
+                       const vector<string> &input) {
     console << "disconnect @todo" << endl;
     console << "type: " << type << endl;
 
-    for (const string &t: input) {
-        console << t << endl;
-    }
-//    `connected_devices`;
+    vector<int> mDeviceIDs;
+    bool        mSuccess = compile_device_IDs(mDeviceIDs,
+                                              devices,
+                                              type,
+                                              sanitze_device_identifiers(input));
 
+    if (!mSuccess) {
+        console << "could not connect to any device." << endl;
+        return;
+    }
+
+    console << "found "
+            << mDeviceIDs.size()
+            << " device"
+            << (mDeviceIDs.size() > 1 ? "s" : "") << " to disconnect from."
+            << endl;
+    for (int i: mDeviceIDs) {
+        auto device = devices[i];
+        console << "@todo disconnect from "
+                << device.identifier()
+                << " ( check if already connected )"
+                << endl;
+        // TODO find device in `connected_devices`
+    }
 }
 
-void print_device_capabilities(vector<SimpleBLE::Peripheral> &peripherals) {
-    for (auto peripheral: peripherals) {
+void print_device_capabilities(vector<SimpleBLE::Peripheral> &devices) {
+    for (auto device: devices) {
         try {
-            string connectable_string = peripheral.is_connectable() ? "connectable" : "non-connectable";
-            string peripheral_string  = peripheral.identifier() + " [" + peripheral.address() + "] " +
-                                        to_string(peripheral.rssi()) + " dBm";
-            cout << peripheral_string << " " << connectable_string << endl;
-//            cout << "MTU: " << peripheral.mtu() << endl; // Maximum Transmission Unit.
-            if (peripheral.is_connectable()) {
-                const bool mIsConnected = peripheral.is_connected();
+            string connectable_string = device.is_connectable() ? "connectable" : "non-connectable";
+            string device_string      = device.identifier() + " [" + device.address() + "] " +
+                                        to_string(device.rssi()) + " dBm";
+            cout << device_string << " " << connectable_string << endl;
+//            cout << "MTU: " << device.mtu() << endl; // Maximum Transmission Unit
+            if (device.is_connectable()) {
+                const bool mIsConnected = device.is_connected();
                 if (!mIsConnected) {
                     cout << "connect";
-                    peripheral.connect();
+                    device.connect();
                     cout << "ed … successfully" << endl;
                 } else {
                     cout << "already connected." << endl;
                 }
 
-                for (auto &service: peripheral.services()) {
+                for (auto &service: device.services()) {
                     cout << "Service: " << service.uuid() << endl;
 
                     for (auto &characteristic: service.characteristics()) {
@@ -302,7 +334,7 @@ void print_device_capabilities(vector<SimpleBLE::Peripheral> &peripherals) {
 
                 if (!mIsConnected) {
                     cout << "disconnect";
-                    peripheral.disconnect();
+                    device.disconnect();
                     cout << "ed … successfully" << endl;
                 }
             } else {
@@ -325,15 +357,15 @@ void print_prompt() {
 }
 
 bool parse_input(Adapter &adapter,
-                 vector<SimpleBLE::Peripheral> &peripherals,
+                 vector<SimpleBLE::Peripheral> &devices,
                  Watchdog *watchdog,
                  int argc, char *argv[]) {
     static const string CMD_CONNECT          = "connect";
     static const string CMD_CONNECT_CMD      = "" + CMD_CONNECT;
     static const string CMD_DISCONNECT       = "disconnect";
     static const string CMD_DISCONNECT_CMD   = "" + CMD_DISCONNECT;
-    static const string CMD_PERIPHERALS      = "peripherals";
-    static const string CMD_PERIPHERALS_CMD  = "p," + CMD_PERIPHERALS;
+    static const string CMD_DEVICES          = "devices";
+    static const string CMD_DEVICES_CMD      = "d," + CMD_DEVICES;
     static const string DEFAULT_CONNECT_TYPE = CONNECTION_TYPE_NAME;
     try {
         cxxopts::Options commands("sendungsbewusstsein", "sendungsbewusstsein broadcasts BLE devices via OSC.");
@@ -349,8 +381,8 @@ bool parse_input(Adapter &adapter,
                         ("i,info", "print capabilities of all available devices")
                         ("s,scan", "scan for available devices",
                          cxxopts::value<int>()->implicit_value(to_string(DEFAULT_SCAN_FOR_DEVICE_DURATION_MS)))
-                        (CMD_PERIPHERALS_CMD,
-                         "specify peripherals for connect or disconnect. names that contain space need to be surrounded by quotation marks. indices might change after scan.",
+                        (CMD_DEVICES_CMD,
+                         "specify devices for connect or disconnect. names that contain space need to be surrounded by quotation marks. indices might change after scan.",
                          cxxopts::value<vector<string>>())
                         (CMD_CONNECT_CMD,
                          "connect to device either by name (e.g '-p \"WHOOP 4A0934182\" --connect=name'), by address (e.g '-p C6FBA-C7E8-0494-34C6-A54DF25AF596 --connect=address') or by index (e.g '-p 3 --connect=index').",
@@ -368,7 +400,7 @@ bool parse_input(Adapter &adapter,
                 ("t,transmit", "port for transmitting messages", cxxopts::value<int>()->implicit_value("7000"))
                 ("r,receive", "port for receiveing messages", cxxopts::value<int>()->implicit_value("7001"))
                 ("m,multicast", "enable multicast broadcast", cxxopts::value<bool>()->implicit_value("false"));
-        commands.parse_positional({CMD_PERIPHERALS, ""});
+        commands.parse_positional({CMD_DEVICES, ""});
         auto result = commands.parse(argc, argv);
 
         if (result.count("help")) {
@@ -378,7 +410,7 @@ bool parse_input(Adapter &adapter,
 
         if (result.count("info")) {
             console << "info" << endl;
-            print_device_capabilities(peripherals);
+            print_device_capabilities(devices);
             return false;
         }
 
@@ -389,7 +421,7 @@ bool parse_input(Adapter &adapter,
 
         if (result.count("scan")) {
             int mScanDuartion = result["scan"].as<int>(); // default: DEFAULT_SCAN_FOR_DEVICE_DURATION_MS
-            scan_for_peripherals(adapter, peripherals, mScanDuartion, true);
+            scan_for_devices(adapter, devices, mScanDuartion, true);
         }
 
         if (result.count("watchdog")) {
@@ -421,9 +453,11 @@ bool parse_input(Adapter &adapter,
         }
 
         vector<string> mPeripherals;
-        if (result.count(CMD_PERIPHERALS)) {
-            mPeripherals = result[CMD_PERIPHERALS].as<vector<string >>();
-            console << "peripherals (" << mPeripherals.size() << ") = {";
+        if (result.count(CMD_DEVICES)) {
+            mPeripherals = result[CMD_DEVICES].as<vector<string >>();
+            console << "handling devices ("
+                    << mPeripherals.size()
+                    << ") = {";
             for (const auto &s: mPeripherals) {
                 console << s << ", ";
             }
@@ -431,15 +465,17 @@ bool parse_input(Adapter &adapter,
         }
 
         if ((result.count(CMD_CONNECT) || result.count(CMD_DISCONNECT)) && mPeripherals.empty()) {
-            console << "no peripheral(s) specified to connect to or disconnect from." << endl;
+            console << "no device"
+                    << (mPeripherals.size() > 1 ? "s " : " ")
+                    << "specified to connect to or disconnect from." << endl;
         } else {
             if (result.count(CMD_CONNECT)) {
                 string mType = result[CMD_CONNECT].as<string>();
-                fCurrentDeviceID = handle_connect(peripherals, mType, mPeripherals, fCurrentDeviceID);
+                fCurrentConnectedDeviceID = handle_connect(devices, mType, mPeripherals, fCurrentConnectedDeviceID);
             } else if (result.count(CMD_DISCONNECT)) {
                 string mType = result[CMD_DISCONNECT].as<string>();
                 console << "type: " << mType << endl;
-                handle_disconnect(mType, mPeripherals);
+                handle_disconnect(devices, mType, mPeripherals);
             }
         }
 
@@ -458,7 +494,7 @@ bool parse_input(Adapter &adapter,
 }
 
 bool parse_input_vec(Adapter &adapter,
-                     vector<SimpleBLE::Peripheral> &peripherals,
+                     vector<SimpleBLE::Peripheral> &devices,
                      Watchdog *watchdog,
                      vector<string> &args_vec) {
     int         argc   = static_cast<int>(args_vec.size());
@@ -468,7 +504,7 @@ bool parse_input_vec(Adapter &adapter,
         strcpy(argv[i], args_vec[i].c_str());
     }
 
-    bool mExit = parse_input(adapter, peripherals, watchdog, argc, argv);
+    bool mExit = parse_input(adapter, devices, watchdog, argc, argv);
     delete[] argv;
     return mExit;
 }
@@ -539,13 +575,13 @@ int main(int argc, char *argv[]) {
     }
     Adapter adapter = adapter_optional.value();
     console << "Using adapter: " << adapter.identifier() << " [" << adapter.address() << "]" << std::endl;
-    vector<SimpleBLE::Peripheral> peripherals;
-    vector<SimpleBLE::Peripheral> connected_peripherals;
+    vector<SimpleBLE::Peripheral> devices;
+    vector<SimpleBLE::Peripheral> connected_devices;
     bool                          mExit = false;
 
     /* CLI args */
     if (argc > 1) {
-        mExit = parse_input(adapter, peripherals, nullptr, argc, argv); /* parse CLI args */
+        mExit = parse_input(adapter, devices, nullptr, argc, argv); /* parse CLI args */
     }
 
     /* OSC */
@@ -577,14 +613,14 @@ int main(int argc, char *argv[]) {
             console << endl;
 #endif
 
-            mExit = parse_input_vec(adapter, peripherals, &watchdog, commands);
+            mExit = parse_input_vec(adapter, devices, &watchdog, commands);
         }
         print_prompt();
     }
 
-    for (Peripheral peripheral: connected_peripherals) {
+    for (Peripheral device: connected_devices) {
         console << "disconnected … " << endl;
-        peripheral.disconnect();
+        device.disconnect();
         console << "successfully" << endl;
     }
 

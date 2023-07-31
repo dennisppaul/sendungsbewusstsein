@@ -72,9 +72,9 @@ public:
         }
     }
 
-    void send(const int ID,
-              const char* command,
-              const char* name) {
+    void send(const int connected_device_index,
+              const char *command,
+              const char *name) {
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
@@ -83,7 +83,7 @@ public:
                                                             string(OSC_MSG_DELIMITER);
             p << osc::BeginBundleImmediate
               << osc::BeginMessage(mMessageAddrPattern.c_str())
-              << ID
+              << connected_device_index
               << command
               << name
               << osc::EndMessage
@@ -92,7 +92,7 @@ public:
         }
     }
 
-    void send(const int ID,
+    void send(const int connected_device_index,
               const string &characteristic,
               const float value) {
         if (mTransmitSocket != nullptr) {
@@ -103,9 +103,51 @@ public:
                                                             string(OSC_MSG_DELIMITER);
             p << osc::BeginBundleImmediate
               << osc::BeginMessage(mMessageAddrPattern.c_str())
-              << ID
+              << connected_device_index
               << characteristic.c_str()
               << value
+              << osc::EndMessage
+              << osc::EndBundle;
+            mTransmitSocket->Send(p.Data(), p.Size());
+        }
+    }
+
+    void send(const int connected_device_index,
+              const string &characteristic,
+              const int value) {
+        if (mTransmitSocket != nullptr) {
+            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
+                                                            string(OSC_MSG) +
+                                                            string(OSC_MSG_DELIMITER);
+            p << osc::BeginBundleImmediate
+              << osc::BeginMessage(mMessageAddrPattern.c_str())
+              << connected_device_index
+              << characteristic.c_str()
+              << value
+              << osc::EndMessage
+              << osc::EndBundle;
+            mTransmitSocket->Send(p.Data(), p.Size());
+        }
+    }
+
+    void send(const int connected_device_index,
+              const string &command,
+              const string &characteristic,
+              const int supported_characteristic_index) {
+        if (mTransmitSocket != nullptr) {
+            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
+                                                            string(OSC_MSG) +
+                                                            string(OSC_MSG_DELIMITER);
+            p << osc::BeginBundleImmediate
+              << osc::BeginMessage(mMessageAddrPattern.c_str())
+              << connected_device_index
+              << command.c_str()
+              << characteristic.c_str()
+              << supported_characteristic_index
               << osc::EndMessage
               << osc::EndBundle;
             mTransmitSocket->Send(p.Data(), p.Size());

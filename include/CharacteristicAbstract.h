@@ -5,11 +5,22 @@
 using namespace SimpleBLE;
 using namespace std;
 
+// TODO add distinction between notify(aka subscribe/unsubscribe), read, and write
+
 class CharacteristicAbstract {
 public:
-    CharacteristicAbstract(Peripheral *peripheral, int ID) : fPeripheral(peripheral), fID(ID) {}
+    constexpr static const char *CMD_SUBSCRIBE = "subscribe";
+
+    CharacteristicAbstract(Peripheral *peripheral,
+                           int connected_device_index,
+                           int supported_characteristic_index) :
+            fPeripheral(peripheral),
+            fConnectedDeviceIndex(connected_device_index),
+            fSupportedCharacteristicIndex(supported_characteristic_index) {}
 
     virtual ~CharacteristicAbstract() = default;
+
+    virtual void init() = 0;
 
     virtual void subscribe() = 0;
 
@@ -23,5 +34,6 @@ public:
 
 protected:
     Peripheral *fPeripheral = nullptr;
-    const int  fID;
+    const int  fConnectedDeviceIndex;
+    const int  fSupportedCharacteristicIndex;
 };

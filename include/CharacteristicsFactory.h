@@ -9,7 +9,7 @@
 
 class CharacteristicFactory {
 public:
-    using createFn = std::unique_ptr<CharacteristicAbstract> (*)(Peripheral *, int);
+    using createFn = std::unique_ptr<CharacteristicAbstract> (*)(Peripheral *, int, int);
 
     static void
     register_characteristic(const std::string &service, const std::string &characteristic, createFn createFn) {
@@ -20,10 +20,11 @@ public:
     create(const std::string &service,
            const std::string &characteristic,
            Peripheral *peripheral,
-           const int ID) {
+           const int connected_device_index,
+           const int supported_characteristic_index) {
         auto it = characteristic_registry().find(std::make_pair(service, characteristic));
         if (it != characteristic_registry().end()) {
-            return it->second(peripheral, ID);
+            return it->second(peripheral, connected_device_index, supported_characteristic_index);
         }
         return nullptr;
     }
