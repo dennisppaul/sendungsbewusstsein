@@ -3,6 +3,7 @@
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
 #include "CharacteristicsGATT.h"
+#include "BitUtils.h"
 
 using namespace SimpleBLE;
 
@@ -25,36 +26,30 @@ public:
                 << name()
                 << "' "
                 << "as service "
-                << SERVICE_HEART_RATE
+                << SERVICE
                 << " with characteristic "
-                << CHARACTERISTIC_HEART_RATE_MEASUREMENT_N
+                << CHARACTERISTIC
                 << std::endl;
 
-        auto mHeartRateCallback = bind( // NOLINT(*-avoid-bind)
+        auto mCallback = bind( // NOLINT(*-avoid-bind)
                 &CharacteristicHeartRateMeasurment::notify,
                 this,
                 std::placeholders::_1);
-        fPeripheral->notify(SERVICE_HEART_RATE,
-                            CHARACTERISTIC_HEART_RATE_MEASUREMENT_N,
-                            mHeartRateCallback);
-        OscSenderReceiver::instance()->send(fConnectedDeviceIndex,
-                                            CMD_SUBSCRIBE,
-                                            fName,
-                                            fSupportedCharacteristicIndex);
+        fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
+        OscSenderReceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
+                                                                   CMD_SUBSCRIBE,
+                                                                   fName,
+                                                                   fSupportedCharacteristicIndex);
     }
 
-    void unsubscribe() override {
-        fPeripheral->unsubscribe(SERVICE_HEART_RATE,
-                                 CHARACTERISTIC_HEART_RATE_MEASUREMENT_N);
-    }
+    void unsubscribe() override { fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC); }
 
     void read() override {}
 
     void write() override {}
 
     void static register_characteristic() {
-        CharacteristicFactory::register_characteristic(SERVICE_HEART_RATE,
-                                                       CHARACTERISTIC_HEART_RATE_MEASUREMENT_N,
+        CharacteristicFactory::register_characteristic(SERVICE, CHARACTERISTIC,
                                                        [](
                                                                Peripheral *peripheral,
                                                                int connected_device_index,
@@ -69,11 +64,32 @@ public:
     const char *name() override { return fName; }
 
 private:
-    constexpr static const char *fName = "heartrate";
+    constexpr static const char *fName          = "heartrate";
+    constexpr static const char *SERVICE        = SERVICE_HEART_RATE;
+    constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_HEART_RATE_MEASUREMENT_N;
+
+    enum {
+        FLAG_HEART_RATE_VALUE_FORMAT  = 0x0001,
+        FLAG_SENSOR_CONTACT_DETECTED  = 0x0002,
+        FLAG_SENSOR_CONTACT_SUPPORTED = 0x0004,
+        FLAG_ENERGY_EXPANDED_PRESENT  = 0x0008,
+        FLAG_RR_INTERVAL_PRESENT      = 0x0010,
+    };
 
     void notify(ByteArray bytes) {
         // TODO read specs to parse payload properly
-        const float mHeartRate = bytes[1];
-        OscSenderReceiver::instance()->send(fConnectedDeviceIndex, fName, mHeartRate);
+        // see '3.114 Heart Rate Measurement' from 'GATT_Specification_Supplement_v10'
+        float   mHeartRate;
+        uint8_t flags = bytes[0];
+
+        int i = 1;
+        if (flags & FLAG_HEART_RATE_VALUE_FORMAT) {
+            mHeartRate = bytes_to_uint16(bytes[i + 1], bytes[i]);
+            i += 2;
+        } else {
+            mHeartRate = bytes[i];
+            i += 1;
+        }
+        OscSenderReceiver::instance()->send_characteristic_value(fConnectedDeviceIndex, fName, mHeartRate);
     }
 };

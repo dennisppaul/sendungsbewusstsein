@@ -20,6 +20,7 @@
 #include "CharacteristicsGATT.h"
 #include "CharacteristicHeartRateMeasurment.h"
 #include "CharacteristicCyclingPowerMeasurement.h"
+#include "CharacteristicIndoorBikeData.h"
 
 using namespace std;
 using namespace SimpleBLE;
@@ -217,7 +218,7 @@ int handle_connect(vector<SimpleBLE::Peripheral> &devices,
             connected_devices.push_back(mDevice);
             console << "connected device '"
                     << device.identifier()
-                    << "' with OSC ID "
+                    << "' with 'connected device ID' "
                     << current_connected_device_ID
                     << endl;
         } else {
@@ -556,16 +557,10 @@ void osc_callback() {}
 int main(int argc, char *argv[]) {
     console << "Sendungsbewusstsein" << endl;
 
-    CharacteristicCyclingPowerMeasurement::register_characteristic();
+    // TODO find a way to handle this in a better way e.g CharacteristicIndoorBikeData + CharacteristicCyclingPowerMeasurement have some redundancies
     CharacteristicHeartRateMeasurment::register_characteristic();
-
-//    unique_ptr<CharacteristicAbstract> mCyclingPowerMeasurement = CharacteristicFactory::create(SERVICE_CYCLING_POWER,
-//                                                                                                CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N);
-//    unique_ptr<CharacteristicAbstract> mHeartRateMeasurement    = CharacteristicFactory::create(SERVICE_HEART_RATE,
-//                                                                                                CHARACTERISTIC_HEART_RATE_MEASUREMENT_N);
-//    if (mHeartRateMeasurement) {
-//        mHeartRateMeasurement->subscribe();
-//    }
+    CharacteristicIndoorBikeData::register_characteristic();
+    CharacteristicCyclingPowerMeasurement::register_characteristic();
 
     /* connect to adapter */
     auto adapter_optional = Utils::getAdapter();
@@ -573,15 +568,18 @@ int main(int argc, char *argv[]) {
         cerr << "+++ could not find BLE adapter" << endl;
         return EXIT_FAILURE;
     }
-    Adapter adapter = adapter_optional.value();
-    console << "Using adapter: " << adapter.identifier() << " [" << adapter.address() << "]" << std::endl;
-    vector<SimpleBLE::Peripheral> devices;
-    vector<SimpleBLE::Peripheral> connected_devices;
-    bool                          mExit = false;
+    bool    mExit    = false;
+    Adapter mAdapter = adapter_optional.value();
+    console
+            << "Using adapter: "
+            << mAdapter.identifier()
+            << " [" << mAdapter.address() << "]"
+            << endl;
+    vector<SimpleBLE::Peripheral> mDevices;
 
     /* CLI args */
     if (argc > 1) {
-        mExit = parse_input(adapter, devices, nullptr, argc, argv); /* parse CLI args */
+        mExit = parse_input(mAdapter, mDevices, nullptr, argc, argv); /* parse CLI args */
     }
 
     /* OSC */
@@ -589,10 +587,10 @@ int main(int argc, char *argv[]) {
                             default_application_properties.OSC_transmit_port,
                             default_application_properties.OSC_receive_port,
                             default_application_properties.OSC_use_UDP_multicast);
-    this_thread::sleep_for(std::chrono::seconds(2));
+    this_thread::sleep_for(std::chrono::seconds(1));
 
     /* watchdog */
-    Watchdog watchdog; // TODO consider making `watchdog` global
+    Watchdog watchdog;
     init_watchdog(watchdog);
 
     /* handle CLI input */
@@ -613,18 +611,31 @@ int main(int argc, char *argv[]) {
             console << endl;
 #endif
 
-            mExit = parse_input_vec(adapter, devices, &watchdog, commands);
+            mExit = parse_input_vec(mAdapter, mDevices, &watchdog, commands);
         }
         print_prompt();
     }
 
-    for (Peripheral device: connected_devices) {
-        console << "disconnected … " << endl;
-        device.disconnect();
-        console << "successfully" << endl;
-    }
+    console
+            << "was connected to "
+            << connected_devices.size()
+            << " device"
+            << (connected_devices.size() > 1 ? "s" : "")
+            << "."
+            << endl;
 
-    console << "shutting down OSC … " << endl;
+    // TODO why does the code below crash?
+//    for (Device *device: connected_devices) {
+//        if (device->is_connected()) {
+//            console << "disconnect ";
+//            console << "'" << device->name() << "(" << device->ID() << ")" << "' …" << endl;
+//            device->disconnect();
+//            console << "successfully" << endl;
+//        }
+//        delete (device);
+//    }
+
+    console << "shutting down OSC … ";
     OscSenderReceiver::instance()->finalize();
     console << "successfully" << endl;
     return EXIT_SUCCESS;

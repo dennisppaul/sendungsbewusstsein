@@ -25,6 +25,10 @@ public:
         collect_supported_characteristics();
     }
 
+    ~Device() {
+        disconnect();
+    }
+
     void collect_supported_characteristics() {
         int       mSupportedCharacteristicIndex = -1;
         for (auto &service: fPeripheral->services()) {
@@ -50,18 +54,41 @@ public:
                 }
             }
         }
-        OscSenderReceiver::instance()->send(fConnectedDeviceIndex,
-                                            CMD_SUPPORTED_CHARACTERISTICS,
-                                            mSupportedCharacteristicIndex + 1);
+        OscSenderReceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
+                                                                   CMD_SUPPORTED_CHARACTERISTICS,
+                                                                   mSupportedCharacteristicIndex + 1);
     }
 
     void connect() {
-        OscSenderReceiver::instance()->send(fConnectedDeviceIndex, CMD_CONNECT, fName.c_str());
-        fPeripheral->connect();
+        console
+                << "trying to connect to device '"
+                << fName
+                << "'"
+                << endl;
+
+        if (fPeripheral->is_connectable()) {
+            OscSenderReceiver::instance()->send_device_info(fConnectedDeviceIndex, CMD_CONNECT, fName.c_str());
+            fPeripheral->connect();
+        } else {
+            console
+                    << "device '"
+                    << fName
+                    << "' is not connectable"
+                    << endl;
+        }
     }
 
     void disconnect() {
-        OscSenderReceiver::instance()->send(fConnectedDeviceIndex, CMD_DISCONNECT, fName.c_str());
+        console
+                << "trying to disconnect from device '"
+                << fName
+                << "'"
+                << endl;
+
+        if (fPeripheral->is_connected()) {
+            OscSenderReceiver::instance()->send_device_info(fConnectedDeviceIndex, CMD_DISCONNECT, fName.c_str());
+            fPeripheral->disconnect();
+        }
     }
 
     std::string name() {
@@ -74,6 +101,10 @@ public:
 
     bool has_supported_characteristics() {
         return !supported_characeristics.empty();
+    }
+
+    bool is_connected() {
+        return fPeripheral->is_connected();
     }
 
 private:

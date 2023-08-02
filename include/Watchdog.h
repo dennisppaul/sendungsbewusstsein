@@ -9,8 +9,6 @@ using namespace std;
 
 class Watchdog {
 public:
-    const char *ADDR_PATTERN = "watchdog";
-
     explicit Watchdog() {
         fIsSending       = false;
         fIsRunning       = true;
@@ -36,7 +34,7 @@ public:
     }
 
     void send_heartbeat() const {
-        OscSenderReceiver::instance()->send(ADDR_PATTERN, (float) fFrequencyMillis);
+        OscSenderReceiver::instance()->send_watchdog(fFrequencyMillis);
     }
 
 private:

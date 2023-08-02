@@ -51,18 +51,13 @@ public:
         delete mTransmitSocket;
     }
 
-    void send(const string &address_pattern, const float value) { // watchdog
-//        if (mTransmitSocket == nullptr) {
-//            cerr << "why for the love of it all is `mTransmitSocket` a `nullptr` twice?!?" << endl;
-//            initialize_transmit_socket();
-//        }
+    void send_watchdog(const int value) {
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
             string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
                                                             string(OSC_MSG) +
-                                                            string(OSC_MSG_DELIMITER) +
-                                                            address_pattern;
+                                                            string(OSC_MSG_DELIMITER);
             p << osc::BeginBundleImmediate
               << osc::BeginMessage(mMessageAddrPattern.c_str())
               << value
@@ -72,7 +67,7 @@ public:
         }
     }
 
-    void send(const int connected_device_index,
+    void send_device_info(const int connected_device_index,
               const char *command,
               const char *name) {
         if (mTransmitSocket != nullptr) {
@@ -92,9 +87,9 @@ public:
         }
     }
 
-    void send(const int connected_device_index,
-              const string &characteristic,
-              const float value) {
+    void send_characteristic_value(const int connected_device_index,
+                                   const string &characteristic,
+                                   const float value) {
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
@@ -112,9 +107,9 @@ public:
         }
     }
 
-    void send(const int connected_device_index,
-              const string &characteristic,
-              const int value) {
+    void send_characteristic_command(const int connected_device_index,
+                                     const string &characteristic,
+                                     const int index) {
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
@@ -125,6 +120,28 @@ public:
               << osc::BeginMessage(mMessageAddrPattern.c_str())
               << connected_device_index
               << characteristic.c_str()
+              << index
+              << osc::EndMessage
+              << osc::EndBundle;
+            mTransmitSocket->Send(p.Data(), p.Size());
+        }
+    }
+
+    void send_characteristic_value_with_feature(const int connected_device_index,
+                                                const string &characteristic,
+                                                const string &feature,
+                                                const float value) {
+        if (mTransmitSocket != nullptr) {
+            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
+                                                            string(OSC_MSG) +
+                                                            string(OSC_MSG_DELIMITER);
+            p << osc::BeginBundleImmediate
+              << osc::BeginMessage(mMessageAddrPattern.c_str())
+              << connected_device_index
+              << characteristic.c_str()
+              << feature.c_str()
               << value
               << osc::EndMessage
               << osc::EndBundle;
@@ -132,10 +149,10 @@ public:
         }
     }
 
-    void send(const int connected_device_index,
-              const string &command,
-              const string &characteristic,
-              const int supported_characteristic_index) {
+    void send_characteristic_command(const int connected_device_index,
+                                     const string &command,
+                                     const string &characteristic,
+                                     const int supported_characteristic_index) {
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
