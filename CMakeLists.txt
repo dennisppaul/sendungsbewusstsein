@@ -7,8 +7,6 @@ set(SB_LIBRARY_PATH "libraries")
 add_executable(sendungsbewusstsein)
 
 # simpleble
-#target_include_directories(sendungsbewusstsein PRIVATE ${SB_LIBRARY_PATH}/simpleble/include)
-#target_link_directories(sendungsbewusstsein PRIVATE ${SB_LIBRARY_PATH}/simpleble/lib)
 add_subdirectory(${SB_LIBRARY_PATH}/simpleble/simpleble ${CMAKE_BINARY_DIR}/simpleble)
 target_link_libraries(sendungsbewusstsein simpleble::simpleble)
 
@@ -36,4 +34,3 @@ set_target_properties(sendungsbewusstsein PROPERTIES LINK_FLAGS "-Wl,-S")
 # libraries
 target_compile_definitions(sendungsbewusstsein PRIVATE SIMPLEBLE_STATIC_DEFINE)
 target_link_libraries(sendungsbewusstsein "-framework CoreBluetooth" "-framework Foundation")
-#target_link_libraries(sendungsbewusstsein libsimpleble.a "-framework CoreBluetooth" "-framework Foundation")

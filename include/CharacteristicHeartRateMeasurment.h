@@ -4,6 +4,8 @@
 #include "CharacteristicsFactory.h"
 #include "CharacteristicsGATT.h"
 
+using namespace SimpleBLE;
+
 class CharacteristicHeartRateMeasurment : public CharacteristicAbstract {
 public:
     CharacteristicHeartRateMeasurment(Peripheral *peripheral,

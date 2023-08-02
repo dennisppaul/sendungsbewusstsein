@@ -3,9 +3,8 @@
 #include "simpleble/SimpleBLE.h"
 
 using namespace SimpleBLE;
-using namespace std;
 
-// TODO add distinction between notify(aka subscribe/unsubscribe), read, and write
+// TODO add distinction between capabilities i.e notify(aka subscribe/unsubscribe), read, and write
 
 class CharacteristicAbstract {
 public:
