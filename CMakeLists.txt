@@ -3,23 +3,25 @@ project(sendungsbewusstsein)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+set(SB_LIBRARY_PATH "libraries")
+add_executable(sendungsbewusstsein)
 
 # simpleble
-include_directories(simpleble/include)
-link_directories(simpleble/lib)
+target_include_directories(sendungsbewusstsein PRIVATE ${SB_LIBRARY_PATH}/simpleble/include)
+target_link_directories(sendungsbewusstsein PRIVATE ${SB_LIBRARY_PATH}/simpleble/lib)
 
 # oscpack
-include_directories(oscpack/include)
-include_directories(oscpack/include/ip)
-include_directories(oscpack/include/osc)
-FILE(GLOB_RECURSE OSCPACK_SRC oscpack/src/*.cpp)
+target_include_directories(sendungsbewusstsein PRIVATE ${SB_LIBRARY_PATH}/oscpack/include)
+target_include_directories(sendungsbewusstsein PRIVATE ${SB_LIBRARY_PATH}/oscpack/include/ip)
+target_include_directories(sendungsbewusstsein PRIVATE ${SB_LIBRARY_PATH}/oscpack/include/osc)
+FILE(GLOB_RECURSE OSCPACK_SRC ${SB_LIBRARY_PATH}/oscpack/src/*.cpp)
 
 # cxxopts
-include_directories(cxxopts/include)
+target_include_directories(sendungsbewusstsein PRIVATE ${SB_LIBRARY_PATH}/cxxopts/include)
 
 # application
-include_directories(include)
-add_executable(sendungsbewusstsein
+target_include_directories(sendungsbewusstsein PRIVATE include)
+target_sources(sendungsbewusstsein PRIVATE
         src/Console.cpp
         src/utils.cpp
         src/OscSenderReceiver.cpp
