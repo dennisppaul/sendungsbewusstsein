@@ -87,26 +87,6 @@ public:
         }
     }
 
-    void send_characteristic_value(const int connected_device_index,
-                                   const string &characteristic,
-                                   const float value) {
-        if (mTransmitSocket != nullptr) {
-            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-                                                            string(OSC_MSG) +
-                                                            string(OSC_MSG_DELIMITER);
-            p << osc::BeginBundleImmediate
-              << osc::BeginMessage(mMessageAddrPattern.c_str())
-              << connected_device_index
-              << characteristic.c_str()
-              << value
-              << osc::EndMessage
-              << osc::EndBundle;
-            mTransmitSocket->Send(p.Data(), p.Size());
-        }
-    }
-
     void send_characteristic_command(const int connected_device_index,
                                      const string &characteristic,
                                      const int index) {

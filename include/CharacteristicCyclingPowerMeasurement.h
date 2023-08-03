@@ -1,12 +1,11 @@
 #pragma once
 
+#include "SendungsbewusstseinDefines.h"
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
 #include "CharacteristicsGATT.h"
 #include "BitUtils.h"
 #include "utils.hpp"
-
-#define DEBUG_CYCLING_POWER_MEASUREMENT_FEATURES
 
 using namespace SimpleBLE;
 
@@ -25,7 +24,7 @@ public:
 
     void subscribe() override {
         console
-                << "subscribe to '"
+                << "subscribing to '"
                 << name()
                 << "' "
                 << "as service "
@@ -67,10 +66,13 @@ public:
     }
 
 private:
-    constexpr static const char *fName          = "cycling_power_measurement";
-    constexpr static const char *SERVICE        = SERVICE_CYCLING_POWER;
-    constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N;
-    constexpr static const char *FEATURE_POWER  = "power";
+    constexpr static const char *fName                             = "cycling_power_measurement";
+    constexpr static const char *SERVICE                           = SERVICE_CYCLING_POWER;
+    constexpr static const char *CHARACTERISTIC                    = CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N;
+    constexpr static const char *FEATURE_STR_POWER                 = "power";
+    constexpr static const char *FEATURE_STR_ACCUMULATED_TORQUE    = "accumulated_torque";
+    constexpr static const char *FEATURE_STR_WHEEL_REVOLUTION_DATA = "wheel_revolutions";
+    constexpr static const char *FEATURE_STR_CRANK_REVOLUTION_DATA = "crank_revolutions";
 
     enum {
         FEATURE_PEDAL_POWER_BALANCE                 = 0x00000001,
@@ -133,7 +135,7 @@ private:
     static void print_features(uint16_t flags) {
         if (flags & FLAG_PEDAL_POWER_BALANCE_PRESENT) {
             console << "FLAG_PEDAL_POWER_BALANCE_PRESENT" << endl;
-            console << "FLAG_PEDAL_POWER_BALANCE_REFERENCE: ";
+            console << "    FLAG_PEDAL_POWER_BALANCE_REFERENCE: ";
             if (flags & FLAG_PEDAL_POWER_BALANCE_REFERENCE_LEFT) {
                 console << "LEFT";
             } else {
@@ -143,7 +145,7 @@ private:
         }
         if (flags & FLAG_ACCUMULATED_TORQUE_PRESENT) {
             console << "FLAG_ACCUMULATED_TORQUE_PRESENT" << endl;
-            console << "FLAG_ACCUMULATED_TORQUE_SOURCE_CRANK_BASED: ";
+            console << "    FLAG_ACCUMULATED_TORQUE_SOURCE_CRANK_BASED: ";
             if (flags & FLAG_ACCUMULATED_TORQUE_SOURCE_CRANK_BASED) {
                 console << "CRANK";
             } else {
@@ -176,6 +178,7 @@ private:
             console << "FLAG_ACCUMULATED_ENERGY_PRESENT" << endl;
         }
 
+        // TODO is this related to presence of another feature?
         console << "FLAG_OFFSET_COMPENSATION_INDICATOR: ";
         if (flags & FLAG_OFFSET_COMPENSATION_INDICATOR) {
             console << "TRUE";
@@ -216,12 +219,12 @@ private:
         // 00101100 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
         // |- FLAGS -------| |- POWER -------| |- TORQUE ------| |- WHEEL REVOLUTIONS -------------------------------| |- CRANKREVOLUTION ---------------|
 
-        float power = bytes_to_uint16(bytes[3], bytes[2]); /* power is always present */
+        const auto mInstantaneousPower = (float) bytes_to_uint16(bytes[3], bytes[2]); /* power is always present */
         //         | Instantaneous Power       | sint16       | 2                | unit: watts             |
         OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
                                                                               fName,
-                                                                              FEATURE_POWER,
-                                                                              power);
+                                                                              FEATURE_STR_POWER,
+                                                                              mInstantaneousPower);
 
         int i = 4;
         if (flags & FLAG_PEDAL_POWER_BALANCE_PRESENT) {
@@ -230,11 +233,11 @@ private:
         }
         if (flags & FLAG_ACCUMULATED_TORQUE_PRESENT) {
             //         | Accumulated Torque        | uint16       | 0 or 2           | unit: 1/32 Newton meter |
+            const auto mAccumulatedTorque = (float) bytes_to_uint16(bytes[i + 1], bytes[i]);
             OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
                                                                                   fName,
-                                                                                  "accumulated_torque",
-                                                                                  bytes_to_uint16(bytes[i + 1],
-                                                                                                  bytes[i]));
+                                                                                  FEATURE_STR_ACCUMULATED_TORQUE,
+                                                                                  mAccumulatedTorque);
             i += 2;
         }
         if (flags & FLAG_WHEEL_REVOLUTION_DATA_PRESENT) {
@@ -242,13 +245,14 @@ private:
             // see '3.65.2 Wheel Revolution Data field'
             // > Cumulative Wheel Revolutions :: uint32
             // > Last Wheel Event Time        :: uint16
+            const auto mCumulativeWheelRevolutions = (float) bytes_to_uint32(bytes[i + 3],
+                                                                             bytes[i + 2],
+                                                                             bytes[i + 1],
+                                                                             bytes[i]);
             OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
                                                                                   fName,
-                                                                                  "wheel_revolutions",
-                                                                                  (float) bytes_to_uint32(bytes[i + 3],
-                                                                                                          bytes[i + 2],
-                                                                                                          bytes[i + 1],
-                                                                                                          bytes[i]));
+                                                                                  FEATURE_STR_WHEEL_REVOLUTION_DATA,
+                                                                                  mCumulativeWheelRevolutions);
             i += 6;
         }
         if (flags & FLAG_CRANK_REVOLUTION_DATA_PRESENT) {
@@ -256,11 +260,12 @@ private:
             // see '3.65.3 Crank Revolution Data field'
             // > Cumulative Crank Revolutions :: uint16
             // > Last Crank Event Time        :: uint16
+            const auto mCumulativeCrankRevolutions = (float) bytes_to_uint16(bytes[i + 1],
+                                                                             bytes[i]);
             OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
                                                                                   fName,
-                                                                                  "crank_revolutions",
-                                                                                  (float) bytes_to_uint16(bytes[i + 1],
-                                                                                                          bytes[i]));
+                                                                                  FEATURE_STR_CRANK_REVOLUTION_DATA,
+                                                                                  mCumulativeCrankRevolutions);
             i += 4;
         }
         if (flags & FLAG_EXTREME_FORCE_MAGNITUDES_PRESENT) {

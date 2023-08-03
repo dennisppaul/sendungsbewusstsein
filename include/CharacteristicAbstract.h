@@ -19,11 +19,11 @@ public:
 
     virtual ~CharacteristicAbstract() = default;
 
-    virtual void init() = 0;
+    virtual void init() = 0; /* is called once and can implement default behaviors i.e subscribing to notifications */
 
-    virtual void subscribe() = 0;
+    virtual void subscribe() = 0; /* ... to notification */
 
-    virtual void unsubscribe() = 0;
+    virtual void unsubscribe() = 0;  /* ... from notification */
 
     virtual void read() = 0;
 

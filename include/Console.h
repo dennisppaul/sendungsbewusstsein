@@ -26,9 +26,18 @@ public:
         output_to_std_out = is_enabled;
     }
 
-    Console &flush() {
+    Console &flush(bool newline = true) {
         if (output_to_std_out) {
-            print(buffer.str() + std::string("\n\r"));
+            print(buffer.str() + (newline ? std::string("\n\r") : std::string("")));
+        }
+        return *this;
+    }
+
+    Console &append() {
+        if (output_to_std_out) {
+            std::cout << buffer.str();
+            buffer.str("");
+            buffer.clear();
         }
         return *this;
     }

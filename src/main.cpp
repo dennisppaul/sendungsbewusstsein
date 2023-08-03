@@ -20,7 +20,9 @@
 #include "CharacteristicsGATT.h"
 #include "CharacteristicHeartRateMeasurment.h"
 #include "CharacteristicCyclingPowerMeasurement.h"
+#include "CharacteristicCyclingPowerControlPoint.h"
 #include "CharacteristicIndoorBikeData.h"
+#include "CharacteristicFitnessMachineControlPoint.h"
 
 using namespace std;
 using namespace SimpleBLE;
@@ -53,10 +55,16 @@ void scan_for_devices(Adapter &adapter,
 
     devices.clear();
 
-    adapter.set_callback_on_scan_found(
-            [&](const SimpleBLE::Peripheral &mDevice) { devices.push_back(mDevice); });
-    adapter.set_callback_on_scan_start([]() { console << "scan started … "; });
-    adapter.set_callback_on_scan_stop([]() { console << "finished." << endl; });
+    adapter.set_callback_on_scan_found([&](const SimpleBLE::Peripheral &mDevice) {
+        console << ".";
+        console.append();
+        devices.push_back(mDevice);
+    });
+    adapter.set_callback_on_scan_start([]() {
+        console << "scan started ";
+        console.flush(false);
+    });
+    adapter.set_callback_on_scan_stop([]() { console << endl << "finished." << endl; });
     adapter.scan_for(timeout_ms);
 
     if (verbose) {
@@ -300,10 +308,15 @@ void handle_disconnect(vector<SimpleBLE::Peripheral> &devices,
 void print_device_capabilities(vector<SimpleBLE::Peripheral> &devices) {
     for (auto device: devices) {
         try {
+            cout << "------------------------------------------------------" << endl;
             string connectable_string = device.is_connectable() ? "connectable" : "non-connectable";
-            string device_string      = device.identifier() + " [" + device.address() + "] " +
-                                        to_string(device.rssi()) + " dBm";
-            cout << device_string << " " << connectable_string << endl;
+            string device_string      = device.identifier() + " [" + device.address() + "] ( " +
+                                        to_string(device.rssi()) + " dBm )";
+            cout << device_string << endl;
+            cout << "    TX power    : " << dec << device.tx_power() << " dBm" << std::endl;
+            cout << "    address type: " << device.address_type() << std::endl;
+            cout << "                : " << connectable_string << endl;
+
 //            cout << "MTU: " << device.mtu() << endl; // Maximum Transmission Unit
             if (device.is_connectable()) {
                 const bool mIsConnected = device.is_connected();
@@ -323,7 +336,7 @@ void print_device_capabilities(vector<SimpleBLE::Peripheral> &devices) {
 
                         cout << "    Capabilities: ";
                         for (auto &capability: characteristic.capabilities()) {
-                            console << capability << " ";
+                            cout << capability << ", ";
                         }
                         cout << endl;
 
@@ -554,13 +567,19 @@ bool parse_input_vec(Adapter &adapter,
 
 void osc_callback() {}
 
-int main(int argc, char *argv[]) {
-    console << "Sendungsbewusstsein" << endl;
-
+void register_characteristics() {
     // TODO find a way to handle this in a better way e.g CharacteristicIndoorBikeData + CharacteristicCyclingPowerMeasurement have some redundancies
     CharacteristicHeartRateMeasurment::register_characteristic();
     CharacteristicIndoorBikeData::register_characteristic();
     CharacteristicCyclingPowerMeasurement::register_characteristic();
+    CharacteristicCyclingPowerControlPoint::register_characteristic();
+    CharacteristicFitnessMachineControlPoint::register_characteristic();
+}
+
+int main(int argc, char *argv[]) {
+    console << "Sendungsbewusstsein" << endl;
+
+    register_characteristics();
 
     /* connect to adapter */
     auto adapter_optional = Utils::getAdapter();

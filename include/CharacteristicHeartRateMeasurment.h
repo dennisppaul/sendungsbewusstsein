@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SendungsbewusstseinDefines.h"
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
 #include "CharacteristicsGATT.h"
@@ -22,7 +23,7 @@ public:
 
     void subscribe() override {
         console
-                << "subscribe to '"
+                << "subscribing to '"
                 << name()
                 << "' "
                 << "as service "
@@ -64,9 +65,10 @@ public:
     const char *name() override { return fName; }
 
 private:
-    constexpr static const char *fName          = "heartrate";
-    constexpr static const char *SERVICE        = SERVICE_HEART_RATE;
-    constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_HEART_RATE_MEASUREMENT_N;
+    constexpr static const char *fName                 = "heartrate_rate_measurement";
+    constexpr static const char *SERVICE               = SERVICE_HEART_RATE;
+    constexpr static const char *CHARACTERISTIC        = CHARACTERISTIC_HEART_RATE_MEASUREMENT_N;
+    constexpr static const char *FEATURE_STR_HEARTRATE = "heartrate";
 
     enum {
         FLAG_HEART_RATE_VALUE_FORMAT  = 0x0001,
@@ -90,6 +92,13 @@ private:
             mHeartRate = bytes[i];
             i += 1;
         }
-        OscSenderReceiver::instance()->send_characteristic_value(fConnectedDeviceIndex, fName, mHeartRate);
+#ifdef DEBUG_HEART_RATE_MEASUREMENT_FEATURES
+        console << "HeartRateMeasurement:" << endl;
+        Utils::print_byte_array_as_bits(bytes);
+#endif // DEBUG_HEART_RATE_MEASUREMENT_FEATURES
+        OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                              fName,
+                                                                              FEATURE_STR_HEARTRATE,
+                                                                              mHeartRate);
     }
 };

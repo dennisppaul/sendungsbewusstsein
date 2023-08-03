@@ -1,14 +1,11 @@
 #pragma once
 
-#include <ranges>
-
+#include "SendungsbewusstseinDefines.h"
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
 #include "CharacteristicsGATT.h"
 #include "BitUtils.h"
 #include "utils.hpp"
-
-#define DEBUG_INDOOR_BIKE_DATA_FEATURES
 
 using namespace SimpleBLE;
 
@@ -27,7 +24,7 @@ public:
 
     void subscribe() override {
         console
-                << "subscribe to '"
+                << "subscribing to '"
                 << name()
                 << "' "
                 << "( service: "
@@ -70,12 +67,12 @@ public:
     }
 
 private:
-    constexpr static const char *fName           = "indoor_bike_data";
-    constexpr static const char *SERVICE         = SERVICE_FITNESS_MACHINE;
-    constexpr static const char *CHARACTERISTIC  = CHARACTERISTIC_INDOOR_BIKE_DATA_N;
-    constexpr static const char *FEATURE_SPEED   = "speed";
-    constexpr static const char *FEATURE_POWER   = "power";
-    constexpr static const char *FEATURE_CADENCE = "cadence";
+    constexpr static const char *fName               = "indoor_bike_data";
+    constexpr static const char *SERVICE             = SERVICE_FITNESS_MACHINE;
+    constexpr static const char *CHARACTERISTIC      = CHARACTERISTIC_INDOOR_BIKE_DATA_N;
+    constexpr static const char *FEATURE_STR_SPEED   = "speed";
+    constexpr static const char *FEATURE_STR_POWER   = "power";
+    constexpr static const char *FEATURE_STR_CADENCE = "cadence";
 
     /*
     | Bit | Definition            |
@@ -196,7 +193,7 @@ private:
             float speed = (float) bytes_to_uint16(bytes[i + 1], bytes[i]) * 0.01f;
             OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
                                                                                   fName,
-                                                                                  FEATURE_SPEED,
+                                                                                  FEATURE_STR_SPEED,
                                                                                   speed);
 
             i += 2;
@@ -206,7 +203,7 @@ private:
             float cadence = (float) bytes_to_uint16(bytes[i + 1], bytes[i]) * 0.5f;
             OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
                                                                                   fName,
-                                                                                  FEATURE_CADENCE,
+                                                                                  FEATURE_STR_CADENCE,
                                                                                   cadence);
 
             i += 2;
@@ -228,7 +225,7 @@ private:
             float power = bytes_to_int16(bytes[i + 1], bytes[i]);
             OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
                                                                                   fName,
-                                                                                  FEATURE_POWER,
+                                                                                  FEATURE_STR_POWER,
                                                                                   power);
             i += 2;
         }

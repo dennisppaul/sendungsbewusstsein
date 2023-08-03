@@ -20,6 +20,10 @@ public:
             fPeripheral(peripheral),
             fConnectedDeviceIndex(connected_device_index),
             fName(peripheral->identifier()) {
+        // TODO maybe setup `set_callback_on_connected` and `set_callback_on_disconnected` here
+        peripheral->set_callback_on_connected([]() { console << "device connected" << std::endl; });
+        peripheral->set_callback_on_disconnected([]() { console << "device disconnected" << std::endl; });
+
         connect();
         update_services_and_characteristics();
         collect_supported_characteristics();
