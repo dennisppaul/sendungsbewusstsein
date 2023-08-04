@@ -41,6 +41,12 @@ public:
         }
         return *this;
     }
+    Console &newline() {
+        if (output_to_std_out) {
+            std::cout << "\n\r";
+        }
+        return *this;
+    }
 
 private:
     std::ostringstream          buffer;

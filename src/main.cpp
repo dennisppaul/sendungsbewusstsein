@@ -50,7 +50,8 @@ struct ApplicationProperties {
 void scan_for_devices(Adapter &adapter,
                       vector<SimpleBLE::Peripheral> &devices,
                       int timeout_ms,
-                      bool verbose) {
+                      bool verbose,
+                      bool ignore_devices_without_name = true) {
     console << "scanning for available devices ( " << timeout_ms << "ms )" << endl;
 
     devices.clear();
@@ -64,12 +65,21 @@ void scan_for_devices(Adapter &adapter,
         console << "scan started ";
         console.flush(false);
     });
-    adapter.set_callback_on_scan_stop([]() { console << endl << "finished." << endl; });
+    adapter.set_callback_on_scan_stop([]() {
+        console << " finished.";
+        console.append();
+        console.newline();
+    });
     adapter.scan_for(timeout_ms);
 
     if (verbose) {
-        console << "the following devices were found:" << endl;
+        console
+                << "the following devices were found"
+                << (ignore_devices_without_name ? " ( ignoring devices without name )" : "")
+                << ":"
+                << endl;
         for (size_t i = 0; i < devices.size(); i++) {
+            if (ignore_devices_without_name && devices[i].identifier().empty()) continue;
             console << "[" << i << "] "
                     << devices[i].identifier()
                     << " [" << devices[i].address() << "]"
@@ -434,6 +444,7 @@ bool parse_input(Adapter &adapter,
         }
 
         if (result.count("scan")) {
+            // TODO add option to ignore devices without name--scan
             int mScanDuartion = result["scan"].as<int>(); // default: DEFAULT_SCAN_FOR_DEVICE_DURATION_MS
             scan_for_devices(adapter, devices, mScanDuartion, true);
         }
