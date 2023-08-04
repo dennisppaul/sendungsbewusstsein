@@ -1,3 +1,5 @@
 #include "Console.h"
 
-Console console;
+Console<std::ostream> console;
+Console<std::ostream> error;
+Console<std::ostream> logger;

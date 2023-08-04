@@ -10,26 +10,25 @@
 using namespace SimpleBLE;
 
 /* see "4.16 Fitness Machine Control Point" p50ff from "Fitness Machine Service (v1.0)" */
+/* for 'Requirements' in "Table 4.15: Fitness Machine Control Point Procedure Requirements" see "1.4 GATTSub-ProcedureRequirements" */
 
 class CharacteristicFitnessMachineControlPoint : public CharacteristicAbstract {
 public:
     CharacteristicFitnessMachineControlPoint(Peripheral *peripheral,
-                                           int connected_device_index,
-                                           int supported_characteristic_index)
+                                             int connected_device_index,
+                                             int supported_characteristic_index)
             : CharacteristicAbstract(peripheral,
                                      connected_device_index,
                                      supported_characteristic_index) {}
 
     void init() override {
+        subscribe();
 // cycling power
 // +++ Service: 00001818-0000-1000-8000-00805f9b34fb
 // +++   Characteristic: 00002a63-0000-1000-8000-00805f9b34fb
 // +++     Capabilities: notify
 // +++     Descriptor: 00002902-0000-1000-8000-00805f9b34fb
 //
-//        console
-//                << "XXXXX trying something crazy here:"
-//                << endl;
 //        SimpleBLE::ByteArray rx_data = fPeripheral->read("00001818-0000-1000-8000-00805f9b34fb",
 //                                                         "00002a63-0000-1000-8000-00805f9b34fb",
 //                                                         "00002902-0000-1000-8000-00805f9b34fb");
@@ -37,7 +36,14 @@ public:
 //        Utils::print_byte_array(rx_data);
     }
 
-    void subscribe() override {}
+    void subscribe() override {
+        console << "CharacteristicFitnessMachineControlPoint::subscribe ( > indicate )" << endl;
+        auto mCallback = bind( // NOLINT(*-avoid-bind)
+                &CharacteristicFitnessMachineControlPoint::indicate,
+                this,
+                std::placeholders::_1);
+        fPeripheral->indicate(SERVICE, CHARACTERISTIC, mCallback);
+    }
 
     void unsubscribe() override {}
 
@@ -47,11 +53,55 @@ public:
         // TODO: implement
         // write_request + indicate
 
-        // NOTE: Alternatively, `write_command` can be used to write to a characteristic too.
-        // `write_request` is for unacknowledged writes.
-        // `write_command` is for acknowledged writes.
-        ByteArray bytes = {0};
-        fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
+        /**
+         * 4.16.2.1 Request Control Procedure
+         * When the Request Control Op Code is written to the Fitness Machine Control Point and the Result Code is
+         * ‘Success’, the Server shall allow the Client to perform any supported control procedures (see Sections
+         * 4.16.2.2 to 4.16.2.20).
+         *
+         * The response shall be indicated when the Reset Procedure is completed using the Response Code Op Code and the
+         * Request Op Code, along with the appropriate Result Code as defined in Section 4.16.2.22.
+         *
+         * The control permission remains valid until the connection is terminated, the notification of the Fitness
+         * Machine Status is sent with the value set to Control Permission Lost (see Section 4.17), or the Reset
+         * procedure (see Section 4.16.2.2) is initiated by the Client.
+         *
+         * If the operation results in an error condition where the Fitness Machine Control Point cannot be indicated
+         * (e.g., the Client Characteristic Configuration descriptor is not configured for indication or if a procedure
+         * is already in progress), see Section 4.16.3 for details on handling this condition.
+         */
+        {
+            ByteArray bytes = {0x00}; // 0x00 = Request Control
+            fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
+            /* The response to this control point is Op Code 0x80
+             * followed by the appropriate Parameter Value.
+             */
+        }
+
+        /**
+         * 4.16.2.5 Set Target Resistance Level Procedure
+         *
+         * This procedure requires control permission in order to be executed. Refer to Section 4.16.2.1
+         * for more information on the Request Control procedure. When the Set Target Resistance Level
+         * Op Code is written to the Fitness Machine Control Point and the Result Code is ‘Success’, the
+         * Server shall set the target resistance level to the value sent as a Parameter.
+         *
+         * The response shall be indicated when the Set Target Resistance Level Procedure is completed
+         * using the Response Code Op Code and the Request Op Code, along with the appropriate Result Code
+         * as defined in Section 4.16.2.22.
+         *
+         * If the operation results in an error condition where the Fitness Machine Control Point cannot
+         * be indicated (e.g., the Client Characteristic Configuration descriptor is not configured for
+         * indication or if a procedure is already in progress), see Section 4.16.3 for details on handling
+         * this condition.
+         */
+        {
+            ByteArray bytes = {0x04, 0x03}; // 0x04 = Set Target Resistance Level + parameter
+            fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
+            /* The response to this control point is Op Code 0x80
+             * followed by the appropriate Parameter Value.
+             */
+        }
     }
 
     void static register_characteristic() {
@@ -73,4 +123,10 @@ private:
     constexpr static const char *fName          = "cycling_power_control_point";
     constexpr static const char *SERVICE        = SERVICE_CYCLING_POWER;
     constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_CYCLING_POWER_CONTROL_POINT_WRI;
+
+    void indicate(ByteArray bytes) {
+        // TODO e.g crank length response should be `ByteArray bytes = {0x20, }`
+        console << "CharacteristicFitnessMachineControlPoint::indicate" << endl;
+        Utils::print_byte_array_as_bits(bytes);
+    }
 };

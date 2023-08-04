@@ -42,17 +42,17 @@ explanation of services + capabilites for a collection of devices:
 
 | SERVICE + CHARACTERISTIC               | CAPAB... | DESCRIPTION                         | DESC |
 |----------------------------------------|----------|-------------------------------------|------|
-| 61080001-8d6d-82b8-614a-1c8cb0f8dcc6   | -        | WHOOP custom                        |      |
+| 61080001-8d6d-82b8-614a-1c8cb0f8dcc6   | -        | WHOOP custom                        |      |
 | - 61080002-8d6d-82b8-614a-1c8cb0f8dcc6 | WR, WC   | ???                                 |      |
 | - 61080003-8d6d-82b8-614a-1c8cb0f8dcc6 | N        | ???                                 | 2902 |
 | - 61080004-8d6d-82b8-614a-1c8cb0f8dcc6 | N        | ???                                 | 2902 |
 | - 61080005-8d6d-82b8-614a-1c8cb0f8dcc6 | N        | ???                                 | 2902 |
 | - 61080007-8d6d-82b8-614a-1c8cb0f8dcc6 | N        | ???                                 | 2902 |
-| 0000180d-0000-1000-8000-00805f9b34fb   | -        | Heart Rate                          |      |
+| 0000180d-0000-1000-8000-00805f9b34fb   | -        | Heart Rate                          |      |
 | - 00002a37-0000-1000-8000-00805f9b34fb | N        | Heart Rate Measurement              | 2902 |
-| 0000180a-0000-1000-8000-00805f9b34fb   | -        | Device Information                  |      |
+| 0000180a-0000-1000-8000-00805f9b34fb   | -        | Device Information                  |      |
 | - 00002a29-0000-1000-8000-00805f9b34fb | R        | Manufacturer Name                   |      |
-| 0000180f-0000-1000-8000-00805f9b34fb   | -        | Battery                             |      |
+| 0000180f-0000-1000-8000-00805f9b34fb   | -        | Battery                             |      |
 | - 00002a19-0000-1000-8000-00805f9b34fb | R, N     | Battery Level                       | 2902 |
 
 ---

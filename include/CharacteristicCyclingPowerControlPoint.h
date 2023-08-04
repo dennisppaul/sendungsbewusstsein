@@ -20,9 +20,18 @@ public:
                                      connected_device_index,
                                      supported_characteristic_index) {}
 
-    void init() override {}
+    void init() override {
+        subscribe();
+    }
 
-    void subscribe() override {}
+    void subscribe() override {
+        console << "CharacteristicCyclingPowerControlPoint::subscribe ( > indicate )" << endl;
+        auto mCallback = bind( // NOLINT(*-avoid-bind)
+                &CharacteristicCyclingPowerControlPoint::indicate,
+                this,
+                std::placeholders::_1);
+        fPeripheral->indicate(SERVICE, CHARACTERISTIC, mCallback);
+    }
 
     void unsubscribe() override {}
 
@@ -35,7 +44,7 @@ public:
         // NOTE: Alternatively, `write_command` can be used to write to a characteristic too.
         // `write_request` is for unacknowledged writes.
         // `write_command` is for acknowledged writes.
-        ByteArray bytes = {0};
+        ByteArray bytes = {0x05}; // 0x05 = request crank length
         fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
     }
 
@@ -58,4 +67,10 @@ private:
     constexpr static const char *fName          = "cycling_power_control_point";
     constexpr static const char *SERVICE        = SERVICE_CYCLING_POWER;
     constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_CYCLING_POWER_CONTROL_POINT_WRI;
+
+    void indicate(ByteArray bytes) {
+        // TODO e.g crank length response should be `ByteArray bytes = {0x20, }`
+        console << "CharacteristicCyclingPowerControlPoint::indicate" << endl;
+        Utils::print_byte_array_as_bits(bytes);
+    }
 };

@@ -1,11 +1,11 @@
 // TODO implement saving connected devices ( + disconnect fucntionality )
 // TODO implement writing to BLE devices
-// TODO maybe change architecture to a model where characteristics can be subscribed to e.g ( subscribe to `SERVICE_CYCLING_POWER + CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N` or `SERVICE_FITNESS_MACHINE + CHARACTERISTIC_INDOOR_BIKE_DATA_N` ) this would also require to querry a device for available services/characteristic pairs
 
 #include <iostream>
 #include <vector>
 #include <chrono>
 #include <string>
+#include <fstream>
 
 #include "cxxopts.hpp"
 #include "simpleble/SimpleBLE.h"
@@ -119,7 +119,7 @@ int find_device_by_name(vector<SimpleBLE::Peripheral> &devices, const string &na
         if (starts_with_ignore_case(devices[i].identifier(), name)) {
 //        if (devices[i].identifier().starts_with(name)) {
 //        if (devices[i].identifier() == name) {
-            console << "found by name >"
+            console << "find device name >"
                     << " name:[" << devices[i].identifier() << "]"
                     << " address:[" << devices[i].address() << "]"
                     << " index:[" << i << "] "
@@ -133,7 +133,7 @@ int find_device_by_name(vector<SimpleBLE::Peripheral> &devices, const string &na
 int find_device_by_address(vector<SimpleBLE::Peripheral> &devices, const string &address) {
     for (int i = 0; i < devices.size(); i++) {
         if (devices[i].address() == address) {
-            console << "found by address >"
+            console << "finde device by address >"
                     << " name:[" << devices[i].identifier() << "]"
                     << " address:[" << devices[i].address() << "]"
                     << " index:[" << i << "] "
@@ -276,7 +276,7 @@ int handle_connect(vector<SimpleBLE::Peripheral> &devices,
 //                    << endl;
 //            connected_devices.push_back(device);
 //        } else {
-//            cerr << "+++ could not connect to device " << peripheral.identifier() << endl;
+//            error << "+++ could not connect to device " << peripheral.identifier() << endl;
 //            break;
 //        }
     }
@@ -390,6 +390,9 @@ bool parse_input(Adapter &adapter,
     static const string CMD_DISCONNECT_CMD   = "" + CMD_DISCONNECT;
     static const string CMD_DEVICES          = "devices";
     static const string CMD_DEVICES_CMD      = "d," + CMD_DEVICES;
+    static const string CMD_READ             = "read";
+    static const string CMD_WRITE            = "write";
+    static const string CMD_VALUE            = "value";
     static const string DEFAULT_CONNECT_TYPE = CONNECTION_TYPE_NAME;
     try {
         cxxopts::Options commands("sendungsbewusstsein", "sendungsbewusstsein broadcasts BLE devices via OSC.");
@@ -409,11 +412,20 @@ bool parse_input(Adapter &adapter,
                          "specify devices for connect or disconnect. names that contain space need to be surrounded by quotation marks. indices might change after scan.",
                          cxxopts::value<vector<string>>())
                         (CMD_CONNECT_CMD,
-                         "connect to device either by name (e.g '-p \"WHOOP 4A0934182\" --connect=name'), by address (e.g '-p C6FBA-C7E8-0494-34C6-A54DF25AF596 --connect=address') or by index (e.g '-p 3 --connect=index').",
+                         "connect to device either by name (e.g '--connect=name -p \"WHOOP 4A0934182\" '), by address (e.g '--connect=address -p C6FBA-C7E8-0494-34C6-A54DF25AF596') or by index (e.g '--connect=index -p 3').",
                          cxxopts::value<string>()->implicit_value(DEFAULT_CONNECT_TYPE))
                         (CMD_DISCONNECT_CMD,
                          "disconnect from device either by name, address or index (see 'connect')",
-                         cxxopts::value<string>()->implicit_value(DEFAULT_CONNECT_TYPE));
+                         cxxopts::value<string>()->implicit_value(DEFAULT_CONNECT_TYPE))
+                        (CMD_READ,
+                         "read characteristic from device, specified by index. ( e.g '-p \"WHOOP 4A0934182\" --read=3' )",
+                         cxxopts::value<string>())
+                        (CMD_WRITE,
+                         "write characteristic to device, specified by index. multiple values must be written in quotation marks and separated by commas. ( e.g '-p \"WHOOP 4A0934182\" --write=2' )",
+                         cxxopts::value<string>())
+                        (CMD_VALUE,
+                         R"(spedify values for writing characteristic. multiple values must be written in quotation marks and separated by commas. ( e.g '-p "WHOOP 4A0934182" --write=2 --value="0x0A,0x10,0x42"' ))",
+                         cxxopts::value<string>());
 
         commands.add_options("OSC")
                 ("w,watchdog",
@@ -489,10 +501,14 @@ bool parse_input(Adapter &adapter,
             console << "}" << endl;
         }
 
-        if ((result.count(CMD_CONNECT) || result.count(CMD_DISCONNECT)) && mPeripherals.empty()) {
-            console << "no device"
-                    << (mPeripherals.size() > 1 ? "s " : " ")
-                    << "specified to connect to or disconnect from." << endl;
+        if ((result.count(CMD_CONNECT)
+             || result.count(CMD_DISCONNECT)
+             || result.count(CMD_READ)
+             || result.count(CMD_WRITE))
+            && mPeripherals.empty()) {
+            error << "no device"
+                  << (mPeripherals.size() > 1 ? "s " : " ")
+                  << "specified to connect to, disconnect from, read from, or write to." << endl;
         } else {
             if (result.count(CMD_CONNECT)) {
                 string mType = result[CMD_CONNECT].as<string>();
@@ -501,6 +517,27 @@ bool parse_input(Adapter &adapter,
                 string mType = result[CMD_DISCONNECT].as<string>();
                 console << "type: " << mType << endl;
                 handle_disconnect(devices, mType, mPeripherals);
+            }
+            if (result.count(CMD_READ)) {
+                console
+                        << "TODO read characteristic "
+                        << result[CMD_READ].as<string>()
+                        << " from device(s)."
+                        << endl;
+            } else if (result.count(CMD_WRITE)) {
+                if (result.count(CMD_VALUE)) {
+                    console
+                            << "TODO write characteristic "
+                            << result[CMD_WRITE].as<string>()
+                            << " with values ("
+                            << result[CMD_VALUE].as<string>()
+                            << ") to device(s) "
+                            << endl;
+                } else {
+                    console
+                            << "'write' requires values to be specified with '--value'."
+                            << endl;
+                }
             }
         }
 
@@ -587,21 +624,45 @@ void register_characteristics() {
     CharacteristicFitnessMachineControlPoint::register_characteristic();
 }
 
-int main(int argc, char *argv[]) {
+void setup_logging() {
+    error.enable_output(true);
+    error.set_output_stream(std::cerr);
+
+    console.enable_output(true);
+    console.set_output_stream(std::cout);
     console << "Sendungsbewusstsein" << endl;
 
+#ifdef LOG_IN_FILE
+    std::ofstream outputFile("output.txt");
+    logger.set_output_stream(outputFile);
+    logger.set_prefix("");
+    logger << "This is a log message" << endl;
+    logger << "This is another log message" << endl;
+#endif
+}
+
+void setup_OSC() {
+    OscSenderReceiver::init(default_application_properties.OSC_address.c_str(),
+                            default_application_properties.OSC_transmit_port,
+                            default_application_properties.OSC_receive_port,
+                            default_application_properties.OSC_use_UDP_multicast);
+    this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+int main(int argc, char *argv[]) {
+    setup_logging();
     register_characteristics();
 
     /* connect to adapter */
     auto adapter_optional = Utils::getAdapter();
     if (!adapter_optional.has_value()) {
-        cerr << "+++ could not find BLE adapter" << endl;
+        error << "+++ could not find BLE adapter" << endl;
         return EXIT_FAILURE;
     }
     bool    mExit    = false;
     Adapter mAdapter = adapter_optional.value();
     console
-            << "Using adapter: "
+            << "using adapter: "
             << mAdapter.identifier()
             << " [" << mAdapter.address() << "]"
             << endl;
@@ -613,11 +674,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* OSC */
-    OscSenderReceiver::init(default_application_properties.OSC_address.c_str(),
-                            default_application_properties.OSC_transmit_port,
-                            default_application_properties.OSC_receive_port,
-                            default_application_properties.OSC_use_UDP_multicast);
-    this_thread::sleep_for(std::chrono::seconds(1));
+    setup_OSC();
 
     /* watchdog */
     Watchdog watchdog;
