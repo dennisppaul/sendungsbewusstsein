@@ -10,7 +10,24 @@
 using namespace SimpleBLE;
 
 /* see "4.16 Fitness Machine Control Point" p50ff from "Fitness Machine Service (v1.0)" */
-/* for 'Requirements' in "Table 4.15: Fitness Machine Control Point Procedure Requirements" see "1.4 GATTSub-ProcedureRequirements" */
+/* for 'Requirements' in "Table 4.15: Fitness Machine Control Point Procedure Requirements" see "1.4 GATT Sub-Procedure Requirements" p12 */
+
+/*
+
+Table 1.1: GATT Sub-procedure Requirements
+
+| GATT Sub-Procedure         | Req |
+|----------------------------|-----|
+| Write Characteristic Value | M   |
+| Notification               | M   |
+| Indication                 | C.1 |
+| Read Long                  | O   |
+
+M   = Mandatory
+C.1 = Conditional
+O   = Optional
+
+*/
 
 class CharacteristicFitnessMachineControlPoint : public CharacteristicAbstract {
 public:
@@ -23,17 +40,8 @@ public:
 
     void init() override {
         subscribe();
-// cycling power
-// +++ Service: 00001818-0000-1000-8000-00805f9b34fb
-// +++   Characteristic: 00002a63-0000-1000-8000-00805f9b34fb
-// +++     Capabilities: notify
-// +++     Descriptor: 00002902-0000-1000-8000-00805f9b34fb
-//
-//        SimpleBLE::ByteArray rx_data = fPeripheral->read("00001818-0000-1000-8000-00805f9b34fb",
-//                                                         "00002a63-0000-1000-8000-00805f9b34fb",
-//                                                         "00002902-0000-1000-8000-00805f9b34fb");
-//        console << "Characteristic content is: " << endl;
-//        Utils::print_byte_array(rx_data);
+        write();
+        // write_request + indicate
     }
 
     void subscribe() override {
@@ -51,7 +59,6 @@ public:
 
     void write() override {
         // TODO: implement
-        // write_request + indicate
 
         /**
          * 4.16.2.1 Request Control Procedure
@@ -96,7 +103,7 @@ public:
          * this condition.
          */
         {
-            ByteArray bytes = {0x04, 0x03}; // 0x04 = Set Target Resistance Level + parameter
+            ByteArray bytes = {0x04, 10}; // 0x04 = Set Target Resistance Level + parameter
             fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
             /* The response to this control point is Op Code 0x80
              * followed by the appropriate Parameter Value.
@@ -121,12 +128,20 @@ public:
 
 private:
     constexpr static const char *fName          = "cycling_power_control_point";
-    constexpr static const char *SERVICE        = SERVICE_CYCLING_POWER;
-    constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_CYCLING_POWER_CONTROL_POINT_WRI;
+    constexpr static const char *SERVICE        = SERVICE_FITNESS_MACHINE;
+    constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_FITNESS_MACHINE_CONTROLL_POINT_WRI;
 
     void indicate(ByteArray bytes) {
-        // TODO e.g crank length response should be `ByteArray bytes = {0x20, }`
+        // TODO e.g crank length response should be `ByteArray bytes = {0x80, 0x??, 0x01}`
+        // where
+        // 0x80 == Response Code
+        // 0x?? == Request Op Code e.g 0x04 == Set Target Resistance Level
+        // 0x01 == Result Code "Success"
+        // see "Table 4.24: Fitness Machine Control Point characteristic – Result Codes" p64ff
         console << "CharacteristicFitnessMachineControlPoint::indicate" << endl;
         Utils::print_byte_array_as_bits(bytes);
+        Utils::print_byte_array_as_hex(bytes);
+        Utils::print_byte_array_as_dec(bytes);
+        // maybe also look into "4.17 Fitness Machine Status" p66ff
     }
 };

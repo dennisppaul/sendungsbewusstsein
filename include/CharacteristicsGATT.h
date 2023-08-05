@@ -20,7 +20,7 @@ static constexpr const char *CHARACTERISTIC_MANUFACTURER_NAME_R                =
 static constexpr const char *SERVICE_BATTERY                                   = "0000180f-0000-1000-8000-00805f9b34fb";
 static constexpr const char *CHARACTERISTIC_BATTERY_LEVEL_RN                   = "00002a19-0000-1000-8000-00805f9b34fb";
 static constexpr const char *CHARACTERISTIC_DESCRIPTOR                         = "00002902-0000-1000-8000-00805f9b34fb";
-/**/
+/* Cycling Power */
 static constexpr const char *SERVICE_CYCLING_POWER                             = "00001818-0000-1000-8000-00805f9b34fb";
 static constexpr const char *CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N        = "00002a63-0000-1000-8000-00805f9b34fb";
 static constexpr const char *CHARACTERISTIC_CYCLING_POWER_FEATURE_R            = "00002a65-0000-1000-8000-00805f9b34fb";
@@ -28,7 +28,6 @@ static constexpr const char *CHARACTERISTIC_SENSOR_LOCATION_R                  =
 static constexpr const char *CHARACTERISTIC_WAHOO_TRAINER_WRI                  = "a026e005-0a7d-4ab3-97fa-f1500f9feb8b";
 static constexpr const char *CHARACTERISTIC_CYCLING_POWER_CONTROL_POINT_WRI    = "00002a66-0000-1000-8000-00805f9b34fb";
 /* Fitness Machine Service */
-/**/
 static constexpr const char *SERVICE_FITNESS_MACHINE                           = "00001826-0000-1000-8000-00805f9b34fb";
 static constexpr const char *CHARACTERISTIC_FITNESS_MACHINE_FEATURE_R          = "00002acc-0000-1000-8000-00805f9b34fb"; // "Fitness Machine Service", p19
 static constexpr const char *CHARACTERISTIC_TRAINING_STATUS_RN                 = "00002ad3-0000-1000-8000-00805f9b34fb"; // "Fitness Machine Service", p46

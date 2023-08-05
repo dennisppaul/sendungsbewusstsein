@@ -19,11 +19,21 @@ void Utils::print_byte_array_as_bits(const SimpleBLE::ByteArray &bytes) {
     std::cout << std::endl;
 }
 
-void Utils::print_byte_array(const SimpleBLE::ByteArray &bytes) {
+void Utils::print_byte_array_as_dec(const SimpleBLE::ByteArray &bytes) {
+    std::cout << std::dec;
     for (auto b: bytes) {
-        std::cout << std::hex << std::setfill('0') << std::setw(2) << (uint32_t) ((uint8_t) b) << " ";
+        std::cout << std::setw(3) << std::setfill('0') << (uint32_t) ((uint8_t) b) << "  ";
+//        std::cout << static_cast<int>(b) << " ";
     }
     std::cout << std::endl;
+}
+
+void Utils::print_byte_array_as_hex(const SimpleBLE::ByteArray &bytes) {
+    for (auto b: bytes) {
+        std::cout << "0x" << std::hex << std::setfill('0') << std::setw(2) << (uint32_t) ((uint8_t) b) << " ";
+    }
+    std::cout << std::endl;
+    std::cout << std::dec;
 }
 
 std::optional<std::size_t> Utils::getUserInputInt(const std::string &line, std::size_t max) {
@@ -67,7 +77,7 @@ std::optional<SimpleBLE::Adapter> Utils::getAdapter() {
 
     // multiple adapters found, ask user to select one
     std::cout << "Available adapters:" << std::endl;
-    int i = 0;
+    int       i = 0;
     for (auto &adapter: adapter_list) {
         std::cout << "[" << i++ << "] " << adapter.identifier() << " [" << adapter.address() << "]" << std::endl;
     }
