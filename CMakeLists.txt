@@ -24,9 +24,10 @@ target_include_directories(sendungsbewusstsein PRIVATE include)
 target_sources(sendungsbewusstsein PRIVATE
         src/Console.cpp
         src/utils.cpp
-        src/OscSenderReceiver.cpp
-        src/MOscPacketListener.cpp
+        src/Transceiver.cpp
+        src/OSCListener.cpp
         src/main.cpp
+        src/StringUtils.cpp
         ${OSCPACK_SRC}
 )
 set_target_properties(sendungsbewusstsein PROPERTIES LINK_FLAGS "-Wl,-S")

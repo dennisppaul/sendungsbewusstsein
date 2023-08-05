@@ -4,17 +4,17 @@
 
 #include "osc/OscPacketListener.h"
 
-#include "OscSenderReceiver.h"
+#include "Transceiver.h"
 
 using namespace std;
 
-class MOscPacketListener : public osc::OscPacketListener {
+class OSCListener : public osc::OscPacketListener {
 
 public:
-    MOscPacketListener(OscSenderReceiver *manager) : fManager(manager) {}
+    OSCListener(Transceiver *manager) : fManager(manager) {}
 
 private:
-    OscSenderReceiver *fManager;
+    Transceiver *fManager;
 
 protected:
     void ProcessMessage(const osc::ReceivedMessage &msg, const IpEndpointName &remoteEndpoint) override;

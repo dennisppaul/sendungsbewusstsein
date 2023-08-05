@@ -5,11 +5,12 @@
 #include <string>
 #include <memory>
 
+#include "simpleble/SimpleBLE.h"
 #include "CharacteristicAbstract.h"
 
 class CharacteristicFactory {
 public:
-    using createFn = std::unique_ptr<CharacteristicAbstract> (*)(Peripheral *, int, int);
+    using createFn = std::unique_ptr<CharacteristicAbstract> (*)(SimpleBLE::Peripheral *, int, int);
 
     static void
     register_characteristic(const std::string &service, const std::string &characteristic, createFn createFn) {
@@ -19,7 +20,7 @@ public:
     static std::unique_ptr<CharacteristicAbstract>
     create(const std::string &service,
            const std::string &characteristic,
-           Peripheral *peripheral,
+           SimpleBLE::Peripheral *peripheral,
            const int connected_device_index,
            const int supported_characteristic_index) {
         auto it = characteristic_registry().find(std::make_pair(service, characteristic));

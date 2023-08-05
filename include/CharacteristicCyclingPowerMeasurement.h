@@ -38,17 +38,17 @@ public:
                 this,
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
-        OscSenderReceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                                   CMD_SUBSCRIBE,
-                                                                   fName,
-                                                                   fSupportedCharacteristicIndex);
+        Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
+                                                             CMD_SUBSCRIBE,
+                                                             fName,
+                                                             fSupportedCharacteristicIndex);
     }
 
     void unsubscribe() override { fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC); }
 
     void read() override {}
 
-    void write() override {}
+    void write(SimpleBLE::ByteArray bytes) override {}
 
     const char *name() override { return fName; }
 
@@ -221,10 +221,10 @@ private:
 
         const auto mInstantaneousPower = (float) bytes_to_uint16(bytes[3], bytes[2]); /* power is always present */
         //         | Instantaneous Power       | sint16       | 2                | unit: watts             |
-        OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
-                                                                              fName,
-                                                                              FEATURE_STR_POWER,
-                                                                              mInstantaneousPower);
+        Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                        fName,
+                                                                        FEATURE_STR_POWER,
+                                                                        mInstantaneousPower);
 
         int i = 4;
         if (flags & FLAG_PEDAL_POWER_BALANCE_PRESENT) {
@@ -234,10 +234,10 @@ private:
         if (flags & FLAG_ACCUMULATED_TORQUE_PRESENT) {
             //         | Accumulated Torque        | uint16       | 0 or 2           | unit: 1/32 Newton meter |
             const auto mAccumulatedTorque = (float) bytes_to_uint16(bytes[i + 1], bytes[i]);
-            OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
-                                                                                  fName,
-                                                                                  FEATURE_STR_ACCUMULATED_TORQUE,
-                                                                                  mAccumulatedTorque);
+            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                            fName,
+                                                                            FEATURE_STR_ACCUMULATED_TORQUE,
+                                                                            mAccumulatedTorque);
             i += 2;
         }
         if (flags & FLAG_WHEEL_REVOLUTION_DATA_PRESENT) {
@@ -249,10 +249,10 @@ private:
                                                                              bytes[i + 2],
                                                                              bytes[i + 1],
                                                                              bytes[i]);
-            OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
-                                                                                  fName,
-                                                                                  FEATURE_STR_WHEEL_REVOLUTION_DATA,
-                                                                                  mCumulativeWheelRevolutions);
+            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                            fName,
+                                                                            FEATURE_STR_WHEEL_REVOLUTION_DATA,
+                                                                            mCumulativeWheelRevolutions);
             i += 6;
         }
         if (flags & FLAG_CRANK_REVOLUTION_DATA_PRESENT) {
@@ -262,10 +262,10 @@ private:
             // > Last Crank Event Time        :: uint16
             const auto mCumulativeCrankRevolutions = (float) bytes_to_uint16(bytes[i + 1],
                                                                              bytes[i]);
-            OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
-                                                                                  fName,
-                                                                                  FEATURE_STR_CRANK_REVOLUTION_DATA,
-                                                                                  mCumulativeCrankRevolutions);
+            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                            fName,
+                                                                            FEATURE_STR_CRANK_REVOLUTION_DATA,
+                                                                            mCumulativeCrankRevolutions);
             i += 4;
         }
         if (flags & FLAG_EXTREME_FORCE_MAGNITUDES_PRESENT) {

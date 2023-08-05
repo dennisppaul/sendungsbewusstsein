@@ -37,17 +37,17 @@ public:
                 this,
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
-        OscSenderReceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                                   CMD_SUBSCRIBE,
-                                                                   fName,
-                                                                   fSupportedCharacteristicIndex);
+        Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
+                                                             CMD_SUBSCRIBE,
+                                                             fName,
+                                                             fSupportedCharacteristicIndex);
     }
 
     void unsubscribe() override { fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC); }
 
     void read() override {}
 
-    void write() override {}
+    void write(SimpleBLE::ByteArray bytes) override {}
 
     void static register_characteristic() {
         CharacteristicFactory::register_characteristic(SERVICE, CHARACTERISTIC,
@@ -96,9 +96,9 @@ private:
         console << "HeartRateMeasurement:" << endl;
         Utils::print_byte_array_as_bits(bytes);
 #endif // DEBUG_HEART_RATE_MEASUREMENT_FEATURES
-        OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
-                                                                              fName,
-                                                                              FEATURE_STR_HEARTRATE,
-                                                                              mHeartRate);
+        Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                        fName,
+                                                                        FEATURE_STR_HEARTRATE,
+                                                                        mHeartRate);
     }
 };

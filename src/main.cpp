@@ -14,7 +14,7 @@
 #include "Device.h"
 #include "utils.hpp"
 #include "StringUtils.h"
-#include "OscSenderReceiver.h"
+#include "Transceiver.h"
 #include "Watchdog.h"
 
 #include "CharacteristicsGATT.h"
@@ -613,10 +613,11 @@ bool parse_input_vec(Adapter &adapter,
 //    }
 //}
 
-void osc_callback() {}
+void osc_callback(std::string typetag, std::vector<std::any> message) {
+    console << "OSC message: " << typetag << " (" << message.size() << ")" << endl;
+}
 
 void register_characteristics() {
-    // TODO find a way to handle this in a better way e.g CharacteristicIndoorBikeData + CharacteristicCyclingPowerMeasurement have some redundancies
     CharacteristicHeartRateMeasurment::register_characteristic();
     CharacteristicIndoorBikeData::register_characteristic();
     CharacteristicCyclingPowerMeasurement::register_characteristic();
@@ -642,10 +643,11 @@ void setup_logging() {
 }
 
 void setup_OSC() {
-    OscSenderReceiver::init(default_application_properties.OSC_address.c_str(),
-                            default_application_properties.OSC_transmit_port,
-                            default_application_properties.OSC_receive_port,
-                            default_application_properties.OSC_use_UDP_multicast);
+    Transceiver::init(default_application_properties.OSC_address.c_str(),
+                      default_application_properties.OSC_transmit_port,
+                      default_application_properties.OSC_receive_port,
+                      default_application_properties.OSC_use_UDP_multicast);
+    Transceiver::instance()->register_receive_callback(osc_callback);
     this_thread::sleep_for(std::chrono::seconds(1));
 }
 
@@ -723,7 +725,7 @@ int main(int argc, char *argv[]) {
 //    }
 
     console << "shutting down OSC … ";
-    OscSenderReceiver::instance()->finalize();
+    Transceiver::instance()->finalize();
     console << "successfully" << endl;
     return EXIT_SUCCESS;
 }

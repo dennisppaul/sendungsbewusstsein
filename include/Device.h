@@ -3,7 +3,7 @@
 #include <utility>
 #include "simpleble/SimpleBLE.h"
 #include "utils.hpp"
-#include "OscSenderReceiver.h"
+#include "Transceiver.h"
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
 
@@ -58,8 +58,8 @@ public:
                 }
             }
         }
-        OscSenderReceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                                   CMD_SUPPORTED_CHARACTERISTICS,
+        Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
+                                                             CMD_SUPPORTED_CHARACTERISTICS,
                                                                    mSupportedCharacteristicIndex + 1);
     }
 
@@ -71,7 +71,7 @@ public:
                 << endl;
 
         if (fPeripheral->is_connectable()) {
-            OscSenderReceiver::instance()->send_device_info(fConnectedDeviceIndex, CMD_CONNECT, fName.c_str());
+            Transceiver::instance()->send_device_info(fConnectedDeviceIndex, CMD_CONNECT, fName.c_str());
             fPeripheral->connect();
         } else {
             console
@@ -90,7 +90,7 @@ public:
                 << endl;
 
         if (fPeripheral->is_connected()) {
-            OscSenderReceiver::instance()->send_device_info(fConnectedDeviceIndex, CMD_DISCONNECT, fName.c_str());
+            Transceiver::instance()->send_device_info(fConnectedDeviceIndex, CMD_DISCONNECT, fName.c_str());
             fPeripheral->disconnect();
         }
     }

@@ -1,15 +1,15 @@
 #include "Console.h"
-#include "OscSenderReceiver.h"
-#include "MOscPacketListener.h"
+#include "Transceiver.h"
+#include "OSCListener.h"
 
 using namespace std;
 
-OscSenderReceiver *OscSenderReceiver::fInstance = nullptr;
+Transceiver *Transceiver::fInstance = nullptr;
 
-void OscSenderReceiver::osc_thread(const char *address,
-                                   int port_transmit,
-                                   int port_receive,
-                                   bool use_muilticast) {
+void Transceiver::osc_thread(const char *address,
+                             int port_transmit,
+                             int port_receive,
+                             bool use_muilticast) {
     console << "@OSC start transmitting on "
             << address << ":" << port_transmit
             << " + receiving on :"
@@ -18,7 +18,7 @@ void OscSenderReceiver::osc_thread(const char *address,
 
     try {
         if (use_muilticast) {
-            MOscPacketListener mOscListener(this);
+            OSCListener mOscListener(this);
             PacketListener *listener_      = &mOscListener;
             IpEndpointName mIpEndpointName = IpEndpointName(address, port_receive);
             if (mIpEndpointName.IsMulticastAddress()) {
@@ -37,7 +37,7 @@ void OscSenderReceiver::osc_thread(const char *address,
                 s.Run();
             }
         } else {
-            MOscPacketListener mOscListener(this);
+            OSCListener mOscListener(this);
             UdpListeningReceiveSocket s(IpEndpointName(IpEndpointName::ANY_ADDRESS, port_receive), &mOscListener);
             s.Run();
         }

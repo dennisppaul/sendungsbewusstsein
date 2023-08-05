@@ -40,7 +40,8 @@ public:
 
     void init() override {
         subscribe();
-        write();
+        write({0x00}); // 0x00 = Request Control
+        write({0x04, 0x08}); // 0x04 = Set Target Resistance Level to 0.8 ( = 0x08 * 0.1 )
         // write_request + indicate
     }
 
@@ -57,7 +58,7 @@ public:
 
     void read() override {}
 
-    void write() override {
+    void write(SimpleBLE::ByteArray bytes) override {
         // TODO: implement
 
         /**
@@ -78,8 +79,8 @@ public:
          * is already in progress), see Section 4.16.3 for details on handling this condition.
          */
         {
-            ByteArray bytes = {0x00}; // 0x00 = Request Control
-            fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
+//            ByteArray bytes = {0x00}; // 0x00 = Request Control
+//            fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
             /* The response to this control point is Op Code 0x80
              * followed by the appropriate Parameter Value.
              */
@@ -103,8 +104,8 @@ public:
          * this condition.
          */
         {
-            ByteArray bytes = {0x04, 10}; // 0x04 = Set Target Resistance Level + parameter
-            fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
+//            ByteArray bytes = {0x04, 10}; // 0x04 = Set Target Resistance Level + parameter
+//            fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
             /* The response to this control point is Op Code 0x80
              * followed by the appropriate Parameter Value.
              */

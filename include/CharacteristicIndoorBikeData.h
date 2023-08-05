@@ -39,17 +39,17 @@ public:
                 this,
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
-        OscSenderReceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                                   CMD_SUBSCRIBE,
-                                                                   fName,
-                                                                   fSupportedCharacteristicIndex);
+        Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
+                                                             CMD_SUBSCRIBE,
+                                                             fName,
+                                                             fSupportedCharacteristicIndex);
     }
 
     void unsubscribe() override { fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC); }
 
     void read() override {}
 
-    void write() override {}
+    void write(SimpleBLE::ByteArray bytes) override {}
 
     const char *name() override { return fName; }
 
@@ -191,20 +191,20 @@ private:
         if (!(flags & FLAG_INSTANTANEOUS_SPEED)) {
             //         | Instantaneous Speed   | uint16 | 0.01 Km/h  |
             float speed = (float) bytes_to_uint16(bytes[i + 1], bytes[i]) * 0.01f;
-            OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
-                                                                                  fName,
-                                                                                  FEATURE_STR_SPEED,
-                                                                                  speed);
+            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                            fName,
+                                                                            FEATURE_STR_SPEED,
+                                                                            speed);
 
             i += 2;
         }
         if (flags & FLAG_INSTANTANEOUS_CADENCE) {
             //         | Instantaneous Cadence | uint16 | 0.5 /min   |
             float cadence = (float) bytes_to_uint16(bytes[i + 1], bytes[i]) * 0.5f;
-            OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
-                                                                                  fName,
-                                                                                  FEATURE_STR_CADENCE,
-                                                                                  cadence);
+            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                            fName,
+                                                                            FEATURE_STR_CADENCE,
+                                                                            cadence);
 
             i += 2;
         }
@@ -223,10 +223,10 @@ private:
         if (flags & FLAG_INSTANTANEOUS_POWER) {
             //         | Instantaneous Power   | sint16 | 1 watt     |
             float power = bytes_to_int16(bytes[i + 1], bytes[i]);
-            OscSenderReceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
-                                                                                  fName,
-                                                                                  FEATURE_STR_POWER,
-                                                                                  power);
+            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+                                                                            fName,
+                                                                            FEATURE_STR_POWER,
+                                                                            power);
             i += 2;
         }
         if (flags & FLAG_AVERAGE_POWER) {

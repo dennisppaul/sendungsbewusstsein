@@ -37,15 +37,15 @@ public:
 
     void read() override {}
 
-    void write() override {
+    void write(SimpleBLE::ByteArray bytes) override {
         // TODO: implement
         // write_request + indicate
 
         // NOTE: Alternatively, `write_command` can be used to write to a characteristic too.
         // `write_request` is for unacknowledged writes.
         // `write_command` is for acknowledged writes.
-        ByteArray bytes = {0x05}; // 0x05 = request crank length
-        fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
+//        ByteArray bytes = {0x05}; // 0x05 = request crank length
+//        fPeripheral->write_request(SERVICE, CHARACTERISTIC, bytes);
     }
 
     void static register_characteristic() {

@@ -2,15 +2,15 @@
 
 #include "simpleble/SimpleBLE.h"
 
-using namespace SimpleBLE;
-
 // TODO add distinction between capabilities i.e notify(aka subscribe/unsubscribe), read, and write
+// TODO rename to `Characteristic` and add namespace
+// TODO move to extra folder
 
 class CharacteristicAbstract {
 public:
     constexpr static const char *CMD_SUBSCRIBE = "subscribe";
 
-    CharacteristicAbstract(Peripheral *peripheral,
+    CharacteristicAbstract(SimpleBLE::Peripheral *peripheral,
                            int connected_device_index,
                            int supported_characteristic_index) :
             fPeripheral(peripheral),
@@ -27,12 +27,12 @@ public:
 
     virtual void read() = 0;
 
-    virtual void write() = 0;
+    virtual void write(SimpleBLE::ByteArray bytes) = 0;
 
     virtual const char *name() = 0;
 
 protected:
-    Peripheral *fPeripheral = nullptr;
-    const int  fConnectedDeviceIndex;
-    const int  fSupportedCharacteristicIndex;
+    SimpleBLE::Peripheral *fPeripheral = nullptr;
+    const int             fConnectedDeviceIndex;
+    const int             fSupportedCharacteristicIndex;
 };

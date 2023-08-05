@@ -1,5 +1,4 @@
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#pragma once
 
 #include <optional>
 #include "simpleble/SimpleBLE.h"
@@ -17,5 +16,3 @@ namespace Utils {
 
     std::optional<std::size_t> getUserInputInt(const std::string &line, std::size_t max);
 }  // namespace Utils
-
-#endif

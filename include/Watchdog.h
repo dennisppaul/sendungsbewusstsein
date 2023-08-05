@@ -3,7 +3,7 @@
 #include <chrono>
 #include <thread>
 
-#include "OscSenderReceiver.h"
+#include "Transceiver.h"
 
 using namespace std;
 
@@ -34,7 +34,7 @@ public:
     }
 
     void send_heartbeat() const {
-        OscSenderReceiver::instance()->send_watchdog(fFrequencyMillis);
+        Transceiver::instance()->send_watchdog(fFrequencyMillis);
     }
 
 private:

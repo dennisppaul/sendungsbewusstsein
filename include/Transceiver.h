@@ -2,12 +2,16 @@
 
 #include <iostream>
 #include <thread>
+#include <any>
+#include <vector>
+#include <string>
 
 #include "ip/UdpSocket.h"
 #include "osc/OscOutboundPacketStream.h"
 #include "osc/OscReceivedElements.h"
 
 #include "Console.h"
+#include "StringUtils.h"
 
 #define DEBUG_OSC
 #define DEFAULT_OSC_TRANSMIT_ADDRESS        "127.0.0.1"
@@ -17,33 +21,30 @@
 
 using namespace std;
 
-class OscSenderReceiver {
+class Transceiver {
 public:
-
-    static OscSenderReceiver *init(const char *address, int port_transmit, int port_receive, bool use_muilticast) {
+    static Transceiver *init(const char *address, int port_transmit, int port_receive, bool use_muilticast) {
         if (fInstance == nullptr) {
             console << "@OSC initializing OSC with user values" << endl;
-            fInstance = new OscSenderReceiver(address, port_transmit, port_receive, use_muilticast);
+            fInstance = new Transceiver(address, port_transmit, port_receive, use_muilticast);
         }
         return fInstance;
     }
 
-    static OscSenderReceiver *instance() {
+    static Transceiver *instance() {
         if (fInstance == nullptr) {
             console << "@OSC starting OSC with default values" << endl;
-            fInstance = new OscSenderReceiver(DEFAULT_OSC_TRANSMIT_ADDRESS,
-                                              DEFAULT_OSC_TRANSMIT_PORT,
-                                              DEFAULT_OSC_RECEIVE_PORT,
-                                              DEFAULT_USE_UDP_MULTICAST);
+            fInstance = new Transceiver(DEFAULT_OSC_TRANSMIT_ADDRESS,
+                                        DEFAULT_OSC_TRANSMIT_PORT,
+                                        DEFAULT_OSC_RECEIVE_PORT,
+                                        DEFAULT_USE_UDP_MULTICAST);
         }
         return fInstance;
     }
 
-    //    OscSenderReceiver(const OscManager &copy) : mOSCThread(copy.mOSCThread), mTransmitSocket(copy.mTransmitSocket) {}
+    Transceiver(const Transceiver &) = delete;
 
-    OscSenderReceiver(const OscSenderReceiver &) = delete;
-
-    OscSenderReceiver &operator=(const OscSenderReceiver &) = delete;
+    Transceiver &operator=(const Transceiver &) = delete;
 
     void finalize() {
         mOSCThread->detach();
@@ -55,9 +56,9 @@ public:
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-                                                            string(OSC_MSG) +
-                                                            string(OSC_MSG_DELIMITER);
+            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
+                                                            string(SB_OSC_ADDRESS_PATTERN) +
+                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
             p << osc::BeginBundleImmediate
               << osc::BeginMessage(mMessageAddrPattern.c_str())
               << value
@@ -68,14 +69,14 @@ public:
     }
 
     void send_device_info(const int connected_device_index,
-              const char *command,
-              const char *name) {
+                          const char *command,
+                          const char *name) {
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-                                                            string(OSC_MSG) +
-                                                            string(OSC_MSG_DELIMITER);
+            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
+                                                            string(SB_OSC_ADDRESS_PATTERN) +
+                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
             p << osc::BeginBundleImmediate
               << osc::BeginMessage(mMessageAddrPattern.c_str())
               << connected_device_index
@@ -93,9 +94,9 @@ public:
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-                                                            string(OSC_MSG) +
-                                                            string(OSC_MSG_DELIMITER);
+            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
+                                                            string(SB_OSC_ADDRESS_PATTERN) +
+                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
             p << osc::BeginBundleImmediate
               << osc::BeginMessage(mMessageAddrPattern.c_str())
               << connected_device_index
@@ -114,9 +115,9 @@ public:
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-                                                            string(OSC_MSG) +
-                                                            string(OSC_MSG_DELIMITER);
+            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
+                                                            string(SB_OSC_ADDRESS_PATTERN) +
+                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
             p << osc::BeginBundleImmediate
               << osc::BeginMessage(mMessageAddrPattern.c_str())
               << connected_device_index
@@ -136,9 +137,9 @@ public:
         if (mTransmitSocket != nullptr) {
             char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
             osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-            string                    mMessageAddrPattern = string(OSC_MSG_DELIMITER) +
-                                                            string(OSC_MSG) +
-                                                            string(OSC_MSG_DELIMITER);
+            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
+                                                            string(SB_OSC_ADDRESS_PATTERN) +
+                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
             p << osc::BeginBundleImmediate
               << osc::BeginMessage(mMessageAddrPattern.c_str())
               << connected_device_index
@@ -152,47 +153,66 @@ public:
     }
 
     void process(const osc::ReceivedMessage &msg) {
-//        osc::ReceivedMessageArgumentStream args = msg.ArgumentStream();
-//        int                                mSerialPort;
-//        int                                mSerialData;
-//        args >> mSerialPort >> mSerialData >> osc::EndMessage;
-
-        uint8_t                                   mData[msg.ArgumentCount()];
-        uint8_t                                   i   = 0;
-        for (osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
-             arg != msg.ArgumentsEnd(); ++arg) {
-            mData[i] = (uint8_t) arg->AsInt32();
-            cout << "received: " << (int) mData[i] << endl;
-            i++;
+        std::string mAddressPattern = msg.AddressPattern();
+        if (mAddressPattern.starts_with(SB_OSC_ADDRESS_PATTERN)) {}
+        std::vector<std::any>                     message;
+        for (osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin(); arg != msg.ArgumentsEnd(); ++arg) {
+            if (arg->IsString()) {
+                message.push_back(arg->AsString());
+            } else if (arg->IsFloat()) {
+                message.push_back(arg->AsFloat());
+            } else if (arg->IsDouble()) {
+                message.push_back(arg->AsDouble());
+            } else if (arg->IsInt32()) {
+                message.push_back(arg->AsInt32());
+            } else if (arg->IsBool()) {
+                message.push_back(arg->AsBool());
+            } else if (arg->IsChar()) {
+                message.push_back(arg->AsChar());
+            } else {
+                console
+                        << "unknown type in OSC message. "
+                        << "only supporting"
+                        << "string, "
+                        << "float, "
+                        << "double, "
+                        << "int32, "
+                        << "bool, "
+                        << "char."
+                        << endl;
+            }
         }
-//        receive(mData, msg.ArgumentCount());
+        callback_receive(msg.TypeTags(), message);
     }
 
 private:
-    static OscSenderReceiver    *fInstance;
-    static const constexpr char *OSC_MSG                        = ("sendungsbewusstsein");
-    static const constexpr char *OSC_MSG_DELIMITER              = ("/");
-    static const uint16_t       OSC_TRANSMIT_OUTPUT_BUFFER_SIZE = 1024;
-    thread                      *mOSCThread                     = nullptr;
-    UdpTransmitSocket           *mTransmitSocket                = nullptr;
-    bool                        fUseMulticast;
+    typedef void (*CallbackType3_STRING_STRING_ANY)(std::string, std::vector<std::any>);
 
-    OscSenderReceiver(const char *address,
-                      int port_transmit,
-                      int port_receive,
-                      bool use_muilticast) :
-            fUseMulticast(use_muilticast) {
+    static Transceiver              *fInstance;
+    static const constexpr char     *SB_OSC_ADDRESS_PATTERN           = ("sendungsbewusstsein");
+    static const constexpr char     *SB_OSC_ADDRESS_PATTERN_DELIMITER = ("/");
+    static const uint16_t           OSC_TRANSMIT_OUTPUT_BUFFER_SIZE   = 1024;
+    thread                          *mOSCThread                       = nullptr;
+    UdpTransmitSocket               *mTransmitSocket                  = nullptr;
+    CallbackType3_STRING_STRING_ANY pCallback                         = nullptr;
+
+    void callback_receive(std::string typetag, std::vector<std::any> message) {
+        if (pCallback) {
+            pCallback(typetag, message);
+        }
+    }
+
+    Transceiver(const char *address,
+                int port_transmit,
+                int port_receive,
+                bool use_muilticast) {
         initialize_transmit_socket(address, port_transmit);
-        mOSCThread = new thread(&OscSenderReceiver::osc_thread,
+        mOSCThread = new thread(&Transceiver::osc_thread,
                                 this,
                                 address,
                                 port_transmit,
                                 port_receive,
                                 use_muilticast);
-    }
-
-    static bool addr_pattern_equals(const osc::ReceivedMessage &msg, const char *pAddrPatter) {
-        return (strcmp(msg.AddressPattern(), pAddrPatter) == 0);
     }
 
     void osc_thread(const char *address,
@@ -202,5 +222,10 @@ private:
 
     void initialize_transmit_socket(const char *address, int port_transmit) {
         mTransmitSocket = new UdpTransmitSocket(IpEndpointName(address, port_transmit));
+    }
+
+public:
+    void register_receive_callback(CallbackType3_STRING_STRING_ANY callback) {
+        pCallback = callback;
     }
 };
