@@ -38,7 +38,7 @@ public:
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
         Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                             CMD_SUBSCRIBE,
+                                                             CMD_SUBSCRIBED,
                                                              fName,
                                                              fSupportedCharacteristicIndex);
     }
@@ -96,7 +96,7 @@ private:
         console << "HeartRateMeasurement:" << endl;
         Utils::print_byte_array_as_bits(bytes);
 #endif // DEBUG_HEART_RATE_MEASUREMENT_FEATURES
-        Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+        Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
                                                                         fName,
                                                                         FEATURE_STR_HEARTRATE,
                                                                         mHeartRate);

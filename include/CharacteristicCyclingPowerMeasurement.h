@@ -39,7 +39,7 @@ public:
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
         Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                             CMD_SUBSCRIBE,
+                                                             CMD_SUBSCRIBED,
                                                              fName,
                                                              fSupportedCharacteristicIndex);
     }
@@ -221,7 +221,7 @@ private:
 
         const auto mInstantaneousPower = (float) bytes_to_uint16(bytes[3], bytes[2]); /* power is always present */
         //         | Instantaneous Power       | sint16       | 2                | unit: watts             |
-        Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+        Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
                                                                         fName,
                                                                         FEATURE_STR_POWER,
                                                                         mInstantaneousPower);
@@ -234,7 +234,7 @@ private:
         if (flags & FLAG_ACCUMULATED_TORQUE_PRESENT) {
             //         | Accumulated Torque        | uint16       | 0 or 2           | unit: 1/32 Newton meter |
             const auto mAccumulatedTorque = (float) bytes_to_uint16(bytes[i + 1], bytes[i]);
-            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
                                                                             fName,
                                                                             FEATURE_STR_ACCUMULATED_TORQUE,
                                                                             mAccumulatedTorque);
@@ -249,7 +249,7 @@ private:
                                                                              bytes[i + 2],
                                                                              bytes[i + 1],
                                                                              bytes[i]);
-            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
                                                                             fName,
                                                                             FEATURE_STR_WHEEL_REVOLUTION_DATA,
                                                                             mCumulativeWheelRevolutions);
@@ -262,7 +262,7 @@ private:
             // > Last Crank Event Time        :: uint16
             const auto mCumulativeCrankRevolutions = (float) bytes_to_uint16(bytes[i + 1],
                                                                              bytes[i]);
-            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
                                                                             fName,
                                                                             FEATURE_STR_CRANK_REVOLUTION_DATA,
                                                                             mCumulativeCrankRevolutions);

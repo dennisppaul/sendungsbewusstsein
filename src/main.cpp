@@ -395,7 +395,7 @@ bool parse_input(Adapter &adapter,
     static const string CMD_VALUE            = "value";
     static const string DEFAULT_CONNECT_TYPE = CONNECTION_TYPE_NAME;
     try {
-        cxxopts::Options commands("sendungsbewusstsein", "sendungsbewusstsein broadcasts BLE devices via OSC.");
+        cxxopts::Options commands("Sendungsbewusstsein", "sendungsbewusstsein broadcasts BLE devices via OSC.");
         commands
                 .set_tab_expansion()
                 .set_width(100)
@@ -615,6 +615,9 @@ bool parse_input_vec(Adapter &adapter,
 
 void osc_callback(std::string typetag, std::vector<std::any> message) {
     console << "OSC message: " << typetag << " (" << message.size() << ")" << endl;
+    // check if message is command
+    // check if command is supported in characteristic
+    // make characteristic handle command
 }
 
 void register_characteristics() {

@@ -108,7 +108,7 @@ public:
         }
     }
 
-    void send_characteristic_value_with_feature(const int connected_device_index,
+    void send_characteristic_feature_with_value(const int connected_device_index,
                                                 const string &characteristic,
                                                 const string &feature,
                                                 const float value) {

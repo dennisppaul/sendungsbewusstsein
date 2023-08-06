@@ -8,7 +8,8 @@
 
 class CharacteristicAbstract {
 public:
-    constexpr static const char *CMD_SUBSCRIBE = "subscribe";
+    constexpr static const char *CMD_SUBSCRIBED   = "subscribed";
+    constexpr static const char *CMD_UNSUBSCRIBED = "unsubscribed";
 
     CharacteristicAbstract(SimpleBLE::Peripheral *peripheral,
                            int connected_device_index,
@@ -30,6 +31,10 @@ public:
     virtual void write(SimpleBLE::ByteArray bytes) = 0;
 
     virtual const char *name() = 0;
+
+//    virtual bool is_supporting_command() = 0;
+//
+//    virtual bool command(std::string &typetag, std::vector<std::any> &message) = 0;
 
 protected:
     SimpleBLE::Peripheral *fPeripheral = nullptr;

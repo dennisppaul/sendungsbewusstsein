@@ -40,7 +40,7 @@ public:
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
         Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                             CMD_SUBSCRIBE,
+                                                             CMD_SUBSCRIBED,
                                                              fName,
                                                              fSupportedCharacteristicIndex);
     }
@@ -191,7 +191,7 @@ private:
         if (!(flags & FLAG_INSTANTANEOUS_SPEED)) {
             //         | Instantaneous Speed   | uint16 | 0.01 Km/h  |
             float speed = (float) bytes_to_uint16(bytes[i + 1], bytes[i]) * 0.01f;
-            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
                                                                             fName,
                                                                             FEATURE_STR_SPEED,
                                                                             speed);
@@ -201,7 +201,7 @@ private:
         if (flags & FLAG_INSTANTANEOUS_CADENCE) {
             //         | Instantaneous Cadence | uint16 | 0.5 /min   |
             float cadence = (float) bytes_to_uint16(bytes[i + 1], bytes[i]) * 0.5f;
-            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
                                                                             fName,
                                                                             FEATURE_STR_CADENCE,
                                                                             cadence);
@@ -223,7 +223,7 @@ private:
         if (flags & FLAG_INSTANTANEOUS_POWER) {
             //         | Instantaneous Power   | sint16 | 1 watt     |
             float power = bytes_to_int16(bytes[i + 1], bytes[i]);
-            Transceiver::instance()->send_characteristic_value_with_feature(fConnectedDeviceIndex,
+            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
                                                                             fName,
                                                                             FEATURE_STR_POWER,
                                                                             power);

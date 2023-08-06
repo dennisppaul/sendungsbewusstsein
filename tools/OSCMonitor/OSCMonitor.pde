@@ -24,13 +24,15 @@ void mousePressed() {
     mMessage.add(123);
     mMessage.add(true);
     mMessage.add('a');
+    // not supported
+    mMessage.add((short)(456));
     mMessage.add((long)(456));
     mMessage.add((byte)(100));
     oscP5.send(mMessage, fRemoteLocation);
 
     print("+++ sent message. ");
-    print("addrpattern: "+mMessage.addrPattern());
-    println(" typetag: "+mMessage.typetag());
+    print("addrpattern: " + mMessage.addrPattern());
+    println(" typetag: " + mMessage.typetag());
 }
 
 void oscEvent(OscMessage theOscMessage) {
