@@ -38,7 +38,7 @@ public:
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
         Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                             CMD_SUBSCRIBED,
+                                                             CMD_RESPONSE_SUBSCRIBED,
                                                              fName,
                                                              fSupportedCharacteristicIndex);
     }

@@ -8,9 +8,6 @@
 
 class CharacteristicAbstract {
 public:
-    constexpr static const char *CMD_SUBSCRIBED   = "subscribed";
-    constexpr static const char *CMD_UNSUBSCRIBED = "unsubscribed";
-
     CharacteristicAbstract(SimpleBLE::Peripheral *peripheral,
                            int connected_device_index,
                            int supported_characteristic_index) :

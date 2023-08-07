@@ -86,8 +86,9 @@ the following *commands* are available:
 - `subscribe_to_characteristic`
 - `unsubscribe_from_characteristic`
 - `get_characteristic_name`
+- `get_feature_name`
 - `get_feature_value`
-- `set_feature_value
+- `set_feature_value`
 
 the following *information* may be sent to the client:
 
@@ -120,11 +121,11 @@ client requests that the server connects to a device. note, that a device can be
 
 ```
 command .... : connect_device(available_device_index/name/UUID)
-typetag .... : si/s/s
+typetag .... : s(i/s/s)
 example .... : "connect_device","Wahoo KICKR" 
 
 response ... : command,
-               available_device_index/name/UUID ( as string ),
+               name/UUID,
                device_index,
                number_of_characteristics
 typetag .... : ssii
@@ -160,9 +161,10 @@ example .... : "subscribe_to_characteristic",0,1
 
 response ... : command,
                device_index,
-               characteristic_index
-typetag .... : si
-example .... : "subscribe_to_characteristic",0,1
+               characteristic_index,
+               number_of_features
+typetag .... : siii
+example .... : "subscribe_to_characteristic",0,1,4
 ```
 
 #### unsubscribe_from_characteristic
@@ -201,34 +203,70 @@ typetag .... : siis
 example .... : "get_characteristic_name",0,1,"heartrate_rate_measurement"
 ```
 
+#### get_characteristic_name
+
+```
+command .... : get_characteristic_name(device_index, 
+                                       characteristic_index)
+typetag .... : sii
+example .... : "get_characteristic_name",0,1
+
+response ... : command,
+               device_index,
+               characteristic_index,
+               characteristic_name
+typetag .... : siis
+example .... : "get_characteristic_name",0,1,"heartrate_rate_measurement"
+```
+
+#### get_feature_name
+
+```
+command .... : get_feature_name(device_index, 
+                                characteristic_index, 
+                                feature_index)
+typetag .... : siis
+example .... : "get_feature_names",0,1,0
+
+response ... : command,
+               device_index,
+               characteristic_index,
+               feature_index,
+               feature_name
+typetag .... : siiss
+example .... : "get_feature_name",0,1,2,"heartrate"
+```
+
 #### get_feature_value
+
+client requests to get the value of a feature within a characteristic.
 
 ```
 command .... : get_feature_value(device_index, 
                                  characteristic_index, 
-                                 feature_name)
-typetag .... : siis
-example .... : "get_feature_value",0,1
+                                 (feature_index/feature_name))
+typetag .... : sii(i/s)
+example .... : "get_feature_value",0,1,"heartrate"
 
 response ... : command,
                device_index,
                characteristic_index,
                feature_name,
                feature_value
-typetag .... : siisf
+typetag .... : sii(i/s)f
 example .... : "get_feature_value",0,1,"heartrate",123
 ```
 
 #### set_feature_value
 
-client requests to set the value of a feature within a characteristic
+client requests to set the value of a feature within a characteristic.
 
 ```
 command .... : set_feature_value(device_index, 
                                  characteristic_index, 
-                                 feature_name, 
+                                 (feature_index/feature_name), 
                                  value)
-typetag .... : siisf
+typetag .... : sii(i/s)f
 example .... : "set_feature_value",0,1,123
 
 response ... : command,
@@ -236,7 +274,7 @@ response ... : command,
                characteristic_index,
                feature_name,
                feature_value
-typetag .... : siisf
+typetag .... : sii(i/s)f
 example .... : "set_feature_value",0,1,"heartrate",123
 ```
 
@@ -263,7 +301,7 @@ send value of a feature to client ( often repeating value send from subscribed c
 ```
 info ....... : send_characteristic_feature_with_value(device_index,
                                                       characteristic_index,
-                                                      feature, 
+                                                      feature_name, 
                                                       value)
 typetag .... : iisf
 example .... : 0,1,"heartrate",52

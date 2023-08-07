@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <any>
+#include <utility>
 #include <vector>
 #include <string>
 
@@ -158,17 +159,17 @@ public:
         std::vector<std::any>                     message;
         for (osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin(); arg != msg.ArgumentsEnd(); ++arg) {
             if (arg->IsString()) {
-                message.push_back(arg->AsString());
+                message.emplace_back(arg->AsString());
             } else if (arg->IsFloat()) {
-                message.push_back(arg->AsFloat());
+                message.emplace_back(arg->AsFloat());
             } else if (arg->IsDouble()) {
-                message.push_back(arg->AsDouble());
+                message.emplace_back(arg->AsDouble());
             } else if (arg->IsInt32()) {
-                message.push_back(arg->AsInt32());
+                message.emplace_back(arg->AsInt32());
             } else if (arg->IsBool()) {
-                message.push_back(arg->AsBool());
+                message.emplace_back(arg->AsBool());
             } else if (arg->IsChar()) {
-                message.push_back(arg->AsChar());
+                message.emplace_back(arg->AsChar());
             } else {
                 console
                         << "unknown type in OSC message. "
@@ -198,7 +199,7 @@ private:
 
     void callback_receive(std::string typetag, std::vector<std::any> message) {
         if (pCallback) {
-            pCallback(typetag, message);
+            pCallback(std::move(typetag), std::move(message));
         }
     }
 

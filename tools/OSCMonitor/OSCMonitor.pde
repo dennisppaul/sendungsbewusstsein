@@ -25,9 +25,9 @@ void mousePressed() {
     mMessage.add(true);
     mMessage.add('a');
     // not supported
-    mMessage.add((short)(456));
-    mMessage.add((long)(456));
-    mMessage.add((byte)(100));
+    mMessage.add((short)(456)); // is `int`
+    mMessage.add((long)(456)); // is `float`
+    mMessage.add((byte)(100)); // is `int`
     oscP5.send(mMessage, fRemoteLocation);
 
     print("+++ sent message. ");

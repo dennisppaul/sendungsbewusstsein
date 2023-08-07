@@ -618,6 +618,19 @@ void osc_callback(std::string typetag, std::vector<std::any> message) {
     // check if message is command
     // check if command is supported in characteristic
     // make characteristic handle command
+
+    // TODO implement commands and information
+    /*
+    - `scan_for_devices`                // in main
+    - `connect_device`                  // in main
+    - `disconnect_device`               // in main
+    - `subscribe_to_characteristic`     // in Device
+    - `unsubscribe_from_characteristic` // in Device
+    - `get_characteristic_name`         // in Device
+    - `get_feature_name`                // in Characteristic
+    - `get_feature_value`               // in Characteristic
+    - `set_feature_value`               // in Characteristic
+     */
 }
 
 void register_characteristics() {
