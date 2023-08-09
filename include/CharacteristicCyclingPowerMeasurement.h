@@ -38,13 +38,19 @@ public:
                 this,
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
-        Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                             CMD_RESPONSE_SUBSCRIBED,
-                                                             fName,
-                                                             fSupportedCharacteristicIndex);
+        // TODO `NUM_FEATURES` maybe needs to be querried from characteristic?
+        Transceiver::instance()->send_characteristic_information_with_value(fConnectedDeviceIndex,
+                                                                            fSupportedCharacteristicIndex,
+                                                                            SUBSCRIBED,
+                                                                            NUM_FEATURES);
     }
 
-    void unsubscribe() override { fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC); }
+    void unsubscribe() override {
+        fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC);
+        Transceiver::instance()->send_characteristic_information(fConnectedDeviceIndex,
+                                                                 fSupportedCharacteristicIndex,
+                                                                 UNSUBSCRIBED);
+    }
 
     void read() override {}
 
@@ -69,10 +75,15 @@ private:
     constexpr static const char *fName                             = "cycling_power_measurement";
     constexpr static const char *SERVICE                           = SERVICE_CYCLING_POWER;
     constexpr static const char *CHARACTERISTIC                    = CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N;
-    constexpr static const char *FEATURE_STR_POWER                 = "power";
-    constexpr static const char *FEATURE_STR_ACCUMULATED_TORQUE    = "accumulated_torque";
-    constexpr static const char *FEATURE_STR_WHEEL_REVOLUTION_DATA = "wheel_revolutions";
-    constexpr static const char *FEATURE_STR_CRANK_REVOLUTION_DATA = "crank_revolutions";
+    static const int            FEATURE_POWER_ENUM                 = 0;
+    constexpr static const char *FEATURE_POWER_STR                 = "power";
+    static const int            FEATURE_ACCUMULATED_TORQUE_ENUM    = 1;
+    constexpr static const char *FEATURE_ACCUMULATED_TORQUE_STR    = "accumulated_torque";
+    static const int            FEATURE_WHEEL_REVOLUTION_DATA_ENUM = 2;
+    constexpr static const char *FEATURE_WHEEL_REVOLUTION_DATA_STR = "wheel_revolutions";
+    static const int            FEATURE_CRANK_REVOLUTION_DATA_ENUM = 3;
+    constexpr static const char *FEATURE_CRANK_REVOLUTION_DATA_STR = "crank_revolutions";
+    static const int            NUM_FEATURES                       = 4;
 
     enum {
         FEATURE_PEDAL_POWER_BALANCE                 = 0x00000001,
@@ -221,10 +232,7 @@ private:
 
         const auto mInstantaneousPower = (float) bytes_to_uint16(bytes[3], bytes[2]); /* power is always present */
         //         | Instantaneous Power       | sint16       | 2                | unit: watts             |
-        Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                        fName,
-                                                                        FEATURE_STR_POWER,
-                                                                        mInstantaneousPower);
+        send(FEATURE_POWER_ENUM, mInstantaneousPower);
 
         int i = 4;
         if (flags & FLAG_PEDAL_POWER_BALANCE_PRESENT) {
@@ -234,10 +242,7 @@ private:
         if (flags & FLAG_ACCUMULATED_TORQUE_PRESENT) {
             //         | Accumulated Torque        | uint16       | 0 or 2           | unit: 1/32 Newton meter |
             const auto mAccumulatedTorque = (float) bytes_to_uint16(bytes[i + 1], bytes[i]);
-            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                            fName,
-                                                                            FEATURE_STR_ACCUMULATED_TORQUE,
-                                                                            mAccumulatedTorque);
+            send(FEATURE_ACCUMULATED_TORQUE_ENUM, mAccumulatedTorque);
             i += 2;
         }
         if (flags & FLAG_WHEEL_REVOLUTION_DATA_PRESENT) {
@@ -249,10 +254,7 @@ private:
                                                                              bytes[i + 2],
                                                                              bytes[i + 1],
                                                                              bytes[i]);
-            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                            fName,
-                                                                            FEATURE_STR_WHEEL_REVOLUTION_DATA,
-                                                                            mCumulativeWheelRevolutions);
+            send(FEATURE_WHEEL_REVOLUTION_DATA_ENUM, mCumulativeWheelRevolutions);
             i += 6;
         }
         if (flags & FLAG_CRANK_REVOLUTION_DATA_PRESENT) {
@@ -262,10 +264,7 @@ private:
             // > Last Crank Event Time        :: uint16
             const auto mCumulativeCrankRevolutions = (float) bytes_to_uint16(bytes[i + 1],
                                                                              bytes[i]);
-            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                            fName,
-                                                                            FEATURE_STR_CRANK_REVOLUTION_DATA,
-                                                                            mCumulativeCrankRevolutions);
+            send(FEATURE_CRANK_REVOLUTION_DATA_ENUM, mCumulativeCrankRevolutions);
             i += 4;
         }
         if (flags & FLAG_EXTREME_FORCE_MAGNITUDES_PRESENT) {

@@ -6,15 +6,13 @@
 #include "Transceiver.h"
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
+#include "SendungsbewusstseinDefines.h"
 
 using namespace SimpleBLE;
 using namespace std;
 
 class Device {
 public:
-    static constexpr const char *CMD_CONNECT                   = "connect";
-    static constexpr const char *CMD_DISCONNECT                = "disconnect";
-    static constexpr const char *CMD_SUPPORTED_CHARACTERISTICS = "supported_characteristics";
 
     Device(Peripheral *peripheral, int connected_device_index) :
             fPeripheral(peripheral),
@@ -58,9 +56,9 @@ public:
                 }
             }
         }
-        Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                             CMD_SUPPORTED_CHARACTERISTICS,
-                                                                   mSupportedCharacteristicIndex + 1);
+        Transceiver::instance()->send_device_information_with_value(fConnectedDeviceIndex,
+                                                                    NUMBER_OF_SUPPORTED_CHARACTERISTICS,
+                                                                    mSupportedCharacteristicIndex + 1);
     }
 
     void connect() {
@@ -71,7 +69,8 @@ public:
                 << endl;
 
         if (fPeripheral->is_connectable()) {
-            Transceiver::instance()->send_device_info(fConnectedDeviceIndex, CMD_CONNECT, fName.c_str());
+            Transceiver::instance()->send_device_information(fConnectedDeviceIndex,
+                                                             CONNECTED_DEVICE);
             fPeripheral->connect();
         } else {
             console
@@ -90,7 +89,8 @@ public:
                 << endl;
 
         if (fPeripheral->is_connected()) {
-            Transceiver::instance()->send_device_info(fConnectedDeviceIndex, CMD_DISCONNECT, fName.c_str());
+            Transceiver::instance()->send_device_information(fConnectedDeviceIndex,
+                                                             DISCONNECT_DEVICE);
             fPeripheral->disconnect();
         }
     }

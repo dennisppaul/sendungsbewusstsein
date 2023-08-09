@@ -92,7 +92,9 @@ the following *commands* are available:
 
 the following *information* may be sent to the client:
 
-- `send_characteristic_command`
+- `send_device_information`
+- `send_device_information_with_value`
+- `send_characteristic_information`
 - `send_characteristic_feature_with_value`
 
 ### commands ( from client to server )
@@ -105,14 +107,14 @@ client requests to update available device list.
 
 ```
 command .... : scan_for_devices(duration_in_milliseconds)
-typetag .... : si
-example .... : "scan_for_devices",5000
+typetag .... : ii
+example .... : CMD_SCAN_FOR_DEVICES,5000
 
 response ... : command,
                duration_in_milliseconds,
                number_of_devices
-typetag .... : sii
-example .... : "scan_for_devices",5000,12 
+typetag .... : iii
+example .... : CMD_SCAN_FOR_DEVICES,5000,12 
 ```
 
 #### connect_device
@@ -121,15 +123,15 @@ client requests that the server connects to a device. note, that a device can be
 
 ```
 command .... : connect_device(available_device_index/name/UUID)
-typetag .... : s(i/s/s)
-example .... : "connect_device","Wahoo KICKR" 
+typetag .... : i(i/s/s)
+example .... : CMD_CONNECT_DEVICE,"Wahoo KICKR" 
 
 response ... : command,
                name/UUID,
                device_index,
                number_of_characteristics
-typetag .... : ssii
-example .... : "connect_device","Wahoo KICKR",0,4
+typetag .... : isii
+example .... : CMD_CONNECT_DEVICE,"Wahoo KICKR",0,4
 ```
 
 note that on connection some characterics are automatically subscribed to.
@@ -140,13 +142,13 @@ client requests that the server disconnects from a device.
 
 ```
 command .... : disconnect_device(device_index)
-typetag .... : si
-example .... : "disconnect_device",0 
+typetag .... : ii
+example .... : CMD_DISCONNECT_DEVICE,0 
 
 response ... : command,
                device_index
-typetag .... : si
-example .... : "disconnect_device",0
+typetag .... : ii
+example .... : CMD_DISCONNECT_DEVICE,0
 ```
 
 #### subscribe_to_characteristic
@@ -156,15 +158,15 @@ client requests to subscribe to a characteristic of a device.
 ```
 command .... : subscribe_to_characteristic(device_index,
                                            characteristic_index)
-typetag .... : sii
-example .... : "subscribe_to_characteristic",0,1
+typetag .... : iii
+example .... : CMD_SUBSCRIBE_TO_CHARACTERISTIC,0,1
 
 response ... : command,
                device_index,
                characteristic_index,
                number_of_features
-typetag .... : siii
-example .... : "subscribe_to_characteristic",0,1,4
+typetag .... : iiii
+example .... : CMD_SUBSCRIBE_TO_CHARACTERISTIC,0,1,4
 ```
 
 #### unsubscribe_from_characteristic
@@ -177,14 +179,14 @@ client requests device name from server
 
 ```
 command .... : get_device_name(device_index)
-typetag .... : si
-example .... : "get_device_name",0 
+typetag .... : ii
+example .... : CMD_GET_DEVICE_NAME,0 
 
 response ... : command,
                device_index,
                {DEVICE_NAME}
-typetag .... : sis
-example .... : "get_device_name",0,"WHOOP 4A0934182"
+typetag .... : iis
+example .... : CMD_GET_DEVICE_NAME,0,"WHOOP 4A0934182"
 ```
 
 #### get_characteristic_name
@@ -192,31 +194,15 @@ example .... : "get_device_name",0,"WHOOP 4A0934182"
 ```
 command .... : get_characteristic_name(device_index, 
                                        characteristic_index)
-typetag .... : sii
-example .... : "get_characteristic_name",0,1
+typetag .... : iii
+example .... : CMD_GET_CHARACTERISTIC_NAME,0,1
 
 response ... : command,
                device_index,
                characteristic_index,
                characteristic_name
-typetag .... : siis
-example .... : "get_characteristic_name",0,1,"heartrate_rate_measurement"
-```
-
-#### get_characteristic_name
-
-```
-command .... : get_characteristic_name(device_index, 
-                                       characteristic_index)
-typetag .... : sii
-example .... : "get_characteristic_name",0,1
-
-response ... : command,
-               device_index,
-               characteristic_index,
-               characteristic_name
-typetag .... : siis
-example .... : "get_characteristic_name",0,1,"heartrate_rate_measurement"
+typetag .... : iiis
+example .... : CMD_GET_CHARACTERISTIC_NAME,0,1,"heartrate_rate_measurement"
 ```
 
 #### get_feature_name
@@ -225,16 +211,16 @@ example .... : "get_characteristic_name",0,1,"heartrate_rate_measurement"
 command .... : get_feature_name(device_index, 
                                 characteristic_index, 
                                 feature_index)
-typetag .... : siis
-example .... : "get_feature_names",0,1,0
+typetag .... : iiii
+example .... : CMD_GET_FEATURE_NAMES,0,1,2
 
 response ... : command,
                device_index,
                characteristic_index,
                feature_index,
                feature_name
-typetag .... : siiss
-example .... : "get_feature_name",0,1,2,"heartrate"
+typetag .... : iiiis
+example .... : CMD_GET_FEATURE_NAMES,0,1,2,"heartrate"
 ```
 
 #### get_feature_value
@@ -245,16 +231,16 @@ client requests to get the value of a feature within a characteristic.
 command .... : get_feature_value(device_index, 
                                  characteristic_index, 
                                  (feature_index/feature_name))
-typetag .... : sii(i/s)
-example .... : "get_feature_value",0,1,"heartrate"
+typetag .... : iii(i/s)
+example .... : CMD_GET_FEATURE_VALUE,0,1,"heartrate"
 
 response ... : command,
                device_index,
                characteristic_index,
                feature_name,
                feature_value
-typetag .... : sii(i/s)f
-example .... : "get_feature_value",0,1,"heartrate",123
+typetag .... : iii(i/s)f
+example .... : CMD_GET_FEATURE_VALUE,0,1,"heartrate",123
 ```
 
 #### set_feature_value
@@ -266,32 +252,61 @@ command .... : set_feature_value(device_index,
                                  characteristic_index, 
                                  (feature_index/feature_name), 
                                  value)
-typetag .... : sii(i/s)f
-example .... : "set_feature_value",0,1,123
+typetag .... : iii(i/s)f
+example .... : CMD_SET_FEATURE_VALUE,0,1,123
 
 response ... : command,
                device_index,
                characteristic_index,
                feature_name,
                feature_value
-typetag .... : sii(i/s)f
-example .... : "set_feature_value",0,1,"heartrate",123
+typetag .... : iii(i/s)f
+example .... : CMD_SET_FEATURE_VALUE,0,1,"heartrate",123
 ```
 
 ### information ( from server to client )
 
 *information* are send from server to client ( e.g when a device is connected or a characteristic is subscribed to ).
 
-#### send_characteristic_command
-
-send characteristic command to client.
+#### send_device_information
 
 ```
-info ....... : send_characteristic_command(device_index,
-                                           characteristic_index,
-                                           command)
-typetag .... : iis
-example .... : 0,1,"subscribed"
+info ....... : send_device_information(device_index,
+                                       information)
+typetag .... : iii
+example .... : INFO_DEVICE,0,CONNECTED_DEVICE
+```
+
+#### send_device_information_with_value
+
+```
+info ....... : send_device_information_with_value(device_index,
+                                                  information, 
+                                                  value)
+typetag .... : iiii
+example .... : INFO_DEVICE_WITH_VALUE,0,NUMBER_OF_SUPPORTED_CHARACTERISTICS,3
+```
+
+#### send_characteristic_information
+
+```
+info ....... : send_characteristic_information(device_index,
+                                               characteristic_index,
+                                               information)
+typetag .... : iiii
+example .... : INFO_CHARACTERISTIC,0,1,UNSUBSCRIBED
+```
+
+
+#### send_characteristic_information_with_value
+
+```
+info ....... : send_characteristic_information_with_value(device_index,
+                                                          characteristic_index,
+                                                          information,
+                                                          value)
+typetag .... : iiiii
+example .... : INFO_CHARACTERISTIC,0,1,SUBSCRIBED,12
 ```
 
 #### send_characteristic_feature_with_value
@@ -301,8 +316,10 @@ send value of a feature to client ( often repeating value send from subscribed c
 ```
 info ....... : send_characteristic_feature_with_value(device_index,
                                                       characteristic_index,
-                                                      feature_name, 
+                                                      (feature_index/feature_name), 
                                                       value)
-typetag .... : iisf
-example .... : 0,1,"heartrate",52
+typetag .... : iii(i/s)f
+example .... : INFO_FEATURE,0,1,"heartrate",52
 ```
+
+==@TODO see how to best implement both `feature_name` and `feature_index`==

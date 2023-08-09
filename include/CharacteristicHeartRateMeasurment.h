@@ -37,13 +37,18 @@ public:
                 this,
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
-        Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                             CMD_RESPONSE_SUBSCRIBED,
-                                                             fName,
-                                                             fSupportedCharacteristicIndex);
+        Transceiver::instance()->send_characteristic_information_with_value(fConnectedDeviceIndex,
+                                                                            fSupportedCharacteristicIndex,
+                                                                            SUBSCRIBED,
+                                                                            NUM_FEATURES);
     }
 
-    void unsubscribe() override { fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC); }
+    void unsubscribe() override {
+        fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC);
+        Transceiver::instance()->send_characteristic_information(fConnectedDeviceIndex,
+                                                                 fSupportedCharacteristicIndex,
+                                                                 UNSUBSCRIBED);
+    }
 
     void read() override {}
 
@@ -65,10 +70,15 @@ public:
     const char *name() override { return fName; }
 
 private:
-    constexpr static const char *fName                 = "heartrate_rate_measurement";
-    constexpr static const char *SERVICE               = SERVICE_HEART_RATE;
-    constexpr static const char *CHARACTERISTIC        = CHARACTERISTIC_HEART_RATE_MEASUREMENT_N;
-    constexpr static const char *FEATURE_STR_HEARTRATE = "heartrate";
+    constexpr static const char *fName          = "heartrate_rate_measurement";
+    constexpr static const char *SERVICE        = SERVICE_HEART_RATE;
+    constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_HEART_RATE_MEASUREMENT_N;
+
+    // TODO this needs to be sorted out properly
+    static const int            FEATURE_HEARTRATE      = 0;
+    constexpr static const char *FEATURE_HEARTRATE_STR = "heartrate";
+    static const int            NUM_FEATURES           = 1;
+
 
     enum {
         FLAG_HEART_RATE_VALUE_FORMAT  = 0x0001,
@@ -96,9 +106,6 @@ private:
         console << "HeartRateMeasurement:" << endl;
         Utils::print_byte_array_as_bits(bytes);
 #endif // DEBUG_HEART_RATE_MEASUREMENT_FEATURES
-        Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                        fName,
-                                                                        FEATURE_STR_HEARTRATE,
-                                                                        mHeartRate);
+        send(FEATURE_HEARTRATE, mHeartRate);
     }
 };

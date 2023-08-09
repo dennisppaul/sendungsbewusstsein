@@ -1,6 +1,7 @@
 #include "Console.h"
 #include "Transceiver.h"
 #include "OSCListener.h"
+#include "SendungsbewusstseinDefines.h"
 
 using namespace std;
 
@@ -46,3 +47,160 @@ void Transceiver::osc_thread(const char *address,
         cerr << "@OSC / error: " << mError << endl;
     }
 }
+
+#define TRANSCEIVER_CHECK_SOCKET  if (mTransmitSocket == nullptr) { return; }
+
+void Transceiver::send_watchdog(const int interval_in_milliseconds) {
+    TRANSCEIVER_CHECK_SOCKET
+    char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+    osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+    p << osc::BeginBundleImmediate
+      << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+      << INFO_WATCHDOG
+      << interval_in_milliseconds
+      << osc::EndMessage
+      << osc::EndBundle;
+    mTransmitSocket->Send(p.Data(), p.Size());
+}
+
+void Transceiver::scan_for_devices(const int duration_in_milliseconds) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::connect_device(const int available_device_index) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::connect_device(string &name_or_UUID) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::disconnect_device(const int device_index) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::subscribe_to_characteristic(const int device_index,
+                                              const int characteristic_index) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::unsubscribe_from_characteristic(const int device_index,
+                                                  const int characteristic_index) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::get_device_name(const int device_index) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::get_characteristic_name(const int device_index,
+                                          const int characteristic_index) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::get_feature_name(const int device_index,
+                                   const int characteristic_index,
+                                   const int feature_index) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::get_feature_value(const int device_index,
+                                    const int characteristic_index,
+                                    const int feature_index) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::get_feature_value(const int device_index,
+                                    const int characteristic_index,
+                                    string &feature_name) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::set_feature_value(const int device_index,
+                                    const int characteristic_index,
+                                    const int feature_index,
+                                    const float value) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::set_feature_value(const int device_index,
+                                    const int characteristic_index,
+                                    string &feature_name,
+                                    const float value) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::send_device_information(const int device_index,
+                                          const int information) {
+    TRANSCEIVER_CHECK_SOCKET
+
+    char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+    osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+    p << osc::BeginBundleImmediate
+      << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+      << INFO_DEVICE
+      << device_index
+      << information
+      << osc::EndMessage
+      << osc::EndBundle;
+    mTransmitSocket->Send(p.Data(), p.Size());
+}
+
+void Transceiver::send_device_information_with_value(const int device_index,
+                                                     const int information,
+                                                     const int value) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::send_characteristic_information(const int device_index,
+                                                  const int characteristic_index,
+                                                  const int information) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::send_characteristic_information_with_value(const int device_index,
+                                                             const int characteristic_index,
+                                                             const int information,
+                                                             const int value) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+
+void Transceiver::send_characteristic_feature_with_value(const int device_index,
+
+                                                         const int characteristic_index,
+
+                                                         const int feature_index,
+
+                                                         const float value) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+
+void Transceiver::send_characteristic_feature_with_value(const int device_index,
+
+                                                         const int characteristic_index,
+
+                                                         string &feature_name,
+
+                                                         const float value) {
+    TRANSCEIVER_CHECK_SOCKET
+
+}
+

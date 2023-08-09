@@ -39,13 +39,19 @@ public:
                 this,
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
-        Transceiver::instance()->send_characteristic_command(fConnectedDeviceIndex,
-                                                             CMD_RESPONSE_SUBSCRIBED,
-                                                             fName,
-                                                             fSupportedCharacteristicIndex);
+        // TODO `NUM_FEATURES` maybe needs to be querried from characteristic?
+        Transceiver::instance()->send_characteristic_information_with_value(fConnectedDeviceIndex,
+                                                                            fSupportedCharacteristicIndex,
+                                                                            SUBSCRIBED,
+                                                                            NUM_FEATURES);
     }
 
-    void unsubscribe() override { fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC); }
+    void unsubscribe() override {
+        fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC);
+        Transceiver::instance()->send_characteristic_information(fConnectedDeviceIndex,
+                                                                 fSupportedCharacteristicIndex,
+                                                                 UNSUBSCRIBED);
+    }
 
     void read() override {}
 
@@ -67,12 +73,17 @@ public:
     }
 
 private:
-    constexpr static const char *fName               = "indoor_bike_data";
-    constexpr static const char *SERVICE             = SERVICE_FITNESS_MACHINE;
-    constexpr static const char *CHARACTERISTIC      = CHARACTERISTIC_INDOOR_BIKE_DATA_N;
-    constexpr static const char *FEATURE_STR_SPEED   = "speed";
-    constexpr static const char *FEATURE_STR_POWER   = "power";
-    constexpr static const char *FEATURE_STR_CADENCE = "cadence";
+    constexpr static const char *fName          = "indoor_bike_data";
+    constexpr static const char *SERVICE        = SERVICE_FITNESS_MACHINE;
+    constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_INDOOR_BIKE_DATA_N;
+
+    static const int            FEATURE_SPEED_ENUM   = 0;
+    constexpr static const char *FEATURE_SPEED_STR   = "speed";
+    static const int            FEATURE_POWER_ENUM   = 1;
+    constexpr static const char *FEATURE_POWER_STR   = "power";
+    static const int            FEATURE_CADENCE_ENUM = 2;
+    constexpr static const char *FEATURE_CADENCE_STR = "cadence";
+    static const int            NUM_FEATURES         = 3;
 
     /*
     | Bit | Definition            |
@@ -191,21 +202,13 @@ private:
         if (!(flags & FLAG_INSTANTANEOUS_SPEED)) {
             //         | Instantaneous Speed   | uint16 | 0.01 Km/h  |
             float speed = (float) bytes_to_uint16(bytes[i + 1], bytes[i]) * 0.01f;
-            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                            fName,
-                                                                            FEATURE_STR_SPEED,
-                                                                            speed);
-
+            send(FEATURE_SPEED_ENUM, speed);
             i += 2;
         }
         if (flags & FLAG_INSTANTANEOUS_CADENCE) {
             //         | Instantaneous Cadence | uint16 | 0.5 /min   |
             float cadence = (float) bytes_to_uint16(bytes[i + 1], bytes[i]) * 0.5f;
-            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                            fName,
-                                                                            FEATURE_STR_CADENCE,
-                                                                            cadence);
-
+            send(FEATURE_CADENCE_ENUM, cadence);
             i += 2;
         }
         if (flags & FLAG_AVERAGE_CADENCE) {
@@ -223,10 +226,7 @@ private:
         if (flags & FLAG_INSTANTANEOUS_POWER) {
             //         | Instantaneous Power   | sint16 | 1 watt     |
             float power = bytes_to_int16(bytes[i + 1], bytes[i]);
-            Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                            fName,
-                                                                            FEATURE_STR_POWER,
-                                                                            power);
+            send(FEATURE_POWER_ENUM, power);
             i += 2;
         }
         if (flags & FLAG_AVERAGE_POWER) {
