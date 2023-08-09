@@ -18,16 +18,19 @@ void draw() {
 void mousePressed() {
     OscMessage mMessage = new OscMessage(fAddressPattern);
     mMessage.setAddrPattern("sendungsbewusstsein");
-    mMessage.add("hello");
-    mMessage.add(1.2f);
-    mMessage.add(3.4d);
-    mMessage.add(123);
-    mMessage.add(true);
-    mMessage.add('a');
-    // not supported
-    mMessage.add((short)(456)); // is `int`
-    mMessage.add((long)(456)); // is `float`
-    mMessage.add((byte)(100)); // is `int`
+    mMessage.add(0);    // CMD_SCAN_FOR_DEVICES
+    mMessage.add(5000); // duration_in_milliseconds
+    
+    //mMessage.add("hello");
+    //mMessage.add(1.2f);
+    //mMessage.add(3.4d);
+    //mMessage.add(123);
+    //mMessage.add(true);
+    //mMessage.add('a');
+    //// not supported
+    //mMessage.add((short)(456)); // is `int`
+    //mMessage.add((long)(456)); // is `float`
+    //mMessage.add((byte)(100)); // is `int`
     oscP5.send(mMessage, fRemoteLocation);
 
     print("+++ sent message. ");

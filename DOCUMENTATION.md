@@ -39,8 +39,8 @@ Usage:
                                 "WHOOP 4A0934182" --write=2 --value="0x0A,0x10,0x42"' )
 
  OSC options:
-  -w, --watchdog [=arg(=2000)]  frequency of watchdog singals in milliseconds. a value of 0 turns 
-                                the watchdog off.
+  -w, --fWatchdog [=arg(=2000)]  frequency of fWatchdog singals in milliseconds. a value of 0 turns 
+                                the fWatchdog off.
   -a, --address [=arg(=127.0.0.1)]
                                 OSC message transmit address
   -t, --transmit [=arg(=7000)]  port for transmitting messages
@@ -85,6 +85,7 @@ the following *commands* are available:
 - `disconnect_device`
 - `subscribe_to_characteristic`
 - `unsubscribe_from_characteristic`
+- `get_device_name`
 - `get_characteristic_name`
 - `get_feature_name`
 - `get_feature_value`
@@ -127,10 +128,10 @@ typetag .... : i(i/s/s)
 example .... : CMD_CONNECT_DEVICE,"Wahoo KICKR" 
 
 response ... : command,
-               name/UUID,
+               available_device_index/name/UUID,
                device_index,
                number_of_characteristics
-typetag .... : isii
+typetag .... : i(i/s/s)ii
 example .... : CMD_CONNECT_DEVICE,"Wahoo KICKR",0,4
 ```
 
@@ -173,6 +174,19 @@ example .... : CMD_SUBSCRIBE_TO_CHARACTERISTIC,0,1,4
 
 client requests to unsubscribe from a characteristic of a device.
 
+```
+command .... : unsubscribe_from_characteristic(device_index,
+                                               characteristic_index)
+typetag .... : iii
+example .... : CMD_UNSUBSCRIBE_FROM_CHARACTERISTIC,0,1
+
+response ... : command,
+               device_index,
+               characteristic_index
+typetag .... : iiii
+example .... : CMD_UNSUBSCRIBE_TO_CHARACTERISTIC,0,1
+```
+
 #### get_device_name
 
 client requests device name from server
@@ -184,7 +198,7 @@ example .... : CMD_GET_DEVICE_NAME,0
 
 response ... : command,
                device_index,
-               {DEVICE_NAME}
+               device_name
 typetag .... : iis
 example .... : CMD_GET_DEVICE_NAME,0,"WHOOP 4A0934182"
 ```

@@ -6,7 +6,7 @@
 #include "Transceiver.h"
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
-#include "SendungsbewusstseinDefines.h"
+#include "Sendungsbewusstsein.h"
 
 using namespace SimpleBLE;
 using namespace std;
@@ -31,34 +31,8 @@ public:
         disconnect();
     }
 
-    void collect_supported_characteristics() {
-        int       mSupportedCharacteristicIndex = -1;
-        for (auto &service: fPeripheral->services()) {
-            for (auto &characteristic: service.characteristics()) {
-                mSupportedCharacteristicIndex++;
-                auto mCharacteristic = CharacteristicFactory::create(service.uuid(),
-                                                                     characteristic.uuid(),
-                                                                     fPeripheral,
-                                                                     fConnectedDeviceIndex,
-                                                                     mSupportedCharacteristicIndex);
-                if (mCharacteristic) {
-                    console << "found supported characteristic: '"
-                            << mCharacteristic->name()
-                            << "' ( "
-                            << "service: " << service.uuid()
-                            << ", characteristic: " << characteristic.uuid()
-                            << " )"
-                            << endl;
-                    mCharacteristic->init();
-                    supported_characeristics.push_back(std::move(mCharacteristic));
-                } else {
-                    mSupportedCharacteristicIndex--;
-                }
-            }
-        }
-        Transceiver::instance()->send_device_information_with_value(fConnectedDeviceIndex,
-                                                                    NUMBER_OF_SUPPORTED_CHARACTERISTICS,
-                                                                    mSupportedCharacteristicIndex + 1);
+    int get_number_of_supported_characteristics() {
+        return supported_characeristics.size();
     }
 
     void connect() {
@@ -117,6 +91,36 @@ private:
     Peripheral                                 *fPeripheral;
     vector<pair<BluetoothUUID, BluetoothUUID>> uuids;
     vector<unique_ptr<CharacteristicAbstract>> supported_characeristics;
+
+    void collect_supported_characteristics() {
+        int       mSupportedCharacteristicIndex = -1;
+        for (auto &service: fPeripheral->services()) {
+            for (auto &characteristic: service.characteristics()) {
+                mSupportedCharacteristicIndex++;
+                auto mCharacteristic = CharacteristicFactory::create(service.uuid(),
+                                                                     characteristic.uuid(),
+                                                                     fPeripheral,
+                                                                     fConnectedDeviceIndex,
+                                                                     mSupportedCharacteristicIndex);
+                if (mCharacteristic) {
+                    console << "found supported characteristic: '"
+                            << mCharacteristic->name()
+                            << "' ( "
+                            << "service: " << service.uuid()
+                            << ", characteristic: " << characteristic.uuid()
+                            << " )"
+                            << endl;
+                    mCharacteristic->init();
+                    supported_characeristics.push_back(std::move(mCharacteristic));
+                } else {
+                    mSupportedCharacteristicIndex--;
+                }
+            }
+        }
+        Transceiver::instance()->send_device_information_with_value(fConnectedDeviceIndex,
+                                                                    NUMBER_OF_SUPPORTED_CHARACTERISTICS,
+                                                                    get_number_of_supported_characteristics());
+    }
 
     void update_services_and_characteristics() {
         for (auto service: fPeripheral->services()) {

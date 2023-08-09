@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <iostream>
 
+// TODO add `console` and `error` for output
+
 void Utils::print_byte(unsigned char byte) {
 //    for (int i = 0; i < 8; ++i) {
     for (int i = 7; i >= 0; --i) {

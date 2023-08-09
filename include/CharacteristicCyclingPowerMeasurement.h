@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SendungsbewusstseinDefines.h"
+#include "Sendungsbewusstsein.h"
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
 #include "CharacteristicsGATT.h"

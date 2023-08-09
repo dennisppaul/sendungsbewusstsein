@@ -53,38 +53,46 @@ public:
         delete mTransmitSocket;
     }
 
-    void send_watchdog(int interval_in_milliseconds);
+    void scan_for_devices(int duration_in_milliseconds, int number_of_devices);
 
-    void scan_for_devices(int duration_in_milliseconds);
+    void connect_device(int available_device_index,
+                        int device_index,
+                        int number_of_characteristics);
 
-    void connect_device(int available_device_index);
-
-    void connect_device(string &name_or_UUID);
+    void connect_device(string &name_or_UUID,
+                        int device_index,
+                        int number_of_characteristics);
 
     void disconnect_device(int device_index);
 
     void subscribe_to_characteristic(int device_index,
-                                     int characteristic_index);
+                                     int characteristic_index,
+                                     int number_of_features);
 
     void unsubscribe_from_characteristic(int device_index,
                                          int characteristic_index);
 
-    void get_device_name(int device_index);
+    void get_device_name(int device_index,
+                         string &device_name);
 
     void get_characteristic_name(int device_index,
-                                 int characteristic_index);
+                                 int characteristic_index,
+                                 string &characteristic_name);
 
     void get_feature_name(int device_index,
                           int characteristic_index,
-                          int feature_index);
+                          int feature_index,
+                          string &feature_name);
 
     void get_feature_value(int device_index,
                            int characteristic_index,
-                           int feature_index);
+                           int feature_index,
+                           float value);
 
     void get_feature_value(int device_index,
                            int characteristic_index,
-                           string &feature_name);
+                           string &feature_name,
+                           float value);
 
     void set_feature_value(int device_index,
                            int characteristic_index,
@@ -113,105 +121,16 @@ public:
                                                     int value);
 
     void send_characteristic_feature_with_value(int device_index,
-
                                                 int characteristic_index,
-
                                                 int feature_index,
-
                                                 float value);
 
     void send_characteristic_feature_with_value(int device_index,
-
                                                 int characteristic_index,
-
                                                 string &feature_name,
-
                                                 float value);
 
-//    void send_device_information_with_value(const int connected_device_index,
-//                                            const char *information,
-//                                            const int value) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
-//                                                            string(SB_OSC_ADDRESS_PATTERN) +
-//                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              <<
-//              << connected_device_index
-//              << information
-//              << value
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
-
-//    void send_characteristic_command(const int connected_device_index,
-//                                     const string &characteristic,
-//                                     const int index) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
-//                                                            string(SB_OSC_ADDRESS_PATTERN) +
-//                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              << connected_device_index
-//              << characteristic.c_str()
-//              << index
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
-
-//    void send_characteristic_command(const int connected_device_index,
-//                                     const string &command,
-//                                     const string &characteristic,
-//                                     const int supported_characteristic_index) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
-//                                                            string(SB_OSC_ADDRESS_PATTERN) +
-//                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              << connected_device_index
-//              << command.c_str()
-//              << characteristic.c_str()
-//              << supported_characteristic_index
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
-
-//    void send_characteristic_feature_with_value(const int connected_device_index,
-//                                                const string &characteristic,
-//                                                const string &feature,
-//                                                const float value) {
-//        if (mTransmitSocket != nullptr) {
-//            char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-//            osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-//            string                    mMessageAddrPattern = string(SB_OSC_ADDRESS_PATTERN_DELIMITER) +
-//                                                            string(SB_OSC_ADDRESS_PATTERN) +
-//                                                            string(SB_OSC_ADDRESS_PATTERN_DELIMITER);
-//            p << osc::BeginBundleImmediate
-//              << osc::BeginMessage(mMessageAddrPattern.c_str())
-//              << connected_device_index
-//              << characteristic.c_str()
-//              << feature.c_str()
-//              << value
-//              << osc::EndMessage
-//              << osc::EndBundle;
-//            mTransmitSocket->Send(p.Data(), p.Size());
-//        }
-//    }
+    void send_watchdog(int interval_in_milliseconds);
 
     void process(const osc::ReceivedMessage &msg) {
         std::string mAddressPattern = msg.AddressPattern();
@@ -282,6 +201,158 @@ private:
 
     void initialize_transmit_socket(const char *address, int port_transmit) {
         mTransmitSocket = new UdpTransmitSocket(IpEndpointName(address, port_transmit));
+    }
+
+#define TRANSCEIVER_CHECK_SOCKET_HEALTH  if (mTransmitSocket == nullptr) { return; }
+
+    void send_i(const int message, const int a) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_ii(const int message, const int a, const int b) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << b
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_iii(const int message, const int a, int b, const int c) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << b
+          << c
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_iiii(const int message, const int a, int b, const int c, const int d) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << b
+          << c
+          << d
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_iiif(const int message, const int a, int b, const int c, const float d) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << b
+          << c
+          << d
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_iisf(const int message, const int a, int b, string &c, const float d) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << b
+          << c.c_str()
+          << d
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_is(const int message, const int a, string &b) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << b.c_str()
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_iis(const int message, const int a, const int b, string &c) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << b
+          << c.c_str()
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_iiis(const int message, const int a, const int b, const int c, string &d) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a
+          << b
+          << c
+          << d.c_str()
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
+    }
+
+    void send_sii(const int message, string &a, const int b, const int c) {
+        TRANSCEIVER_CHECK_SOCKET_HEALTH
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
+        p << osc::BeginBundleImmediate
+          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
+          << message
+          << a.c_str()
+          << b
+          << c
+          << osc::EndMessage
+          << osc::EndBundle;
+        mTransmitSocket->Send(p.Data(), p.Size());
     }
 
 public:
