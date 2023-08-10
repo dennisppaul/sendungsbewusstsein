@@ -96,7 +96,7 @@ the following *information* may be sent to the client:
 - `send_device_information`
 - `send_device_information_with_value`
 - `send_characteristic_information`
-- `send_characteristic_feature_with_value`
+- `send_feature_with_value`
 
 ### commands ( from client to server )
 
@@ -323,17 +323,17 @@ typetag .... : iiiii
 example .... : INFO_CHARACTERISTIC,0,1,SUBSCRIBED,12
 ```
 
-#### send_characteristic_feature_with_value
+#### send_feature_with_value
 
 send value of a feature to client ( often repeating value send from subscribed characteristic ).
 
 ```
-info ....... : send_characteristic_feature_with_value(device_index,
-                                                      characteristic_index,
-                                                      (feature_index/feature_name), 
-                                                      value)
+info ....... : send_feature_with_value(device_index,
+                                       characteristic_index,
+                                       (feature_index/feature_name), 
+                                       value)
 typetag .... : iii(i/s)f
-example .... : INFO_FEATURE,0,1,"heartrate",52
+example .... : INFO_FEATURE_WITH_VALUE,0,1,"heartrate",52
 ```
 
 ==@TODO see how to best implement both `feature_name` and `feature_index`==

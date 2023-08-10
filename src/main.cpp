@@ -214,9 +214,24 @@ static vector<string> sanitze_device_identifiers(const vector<string> &input) {
     return mInput;
 }
 
-static void connect_device_by_peripheral_index(int peripheral_index) {
+static bool connect_device_by_peripheral_index(int peripheral_index) {
+    if (peripheral_index < 0 || peripheral_index >= fAvailablePeripherals.size()) {
+        console
+                << "could not find device with index "
+                << peripheral_index
+                << endl;
+        return false;
+    }
     auto mPeripheral = fAvailablePeripherals[peripheral_index];
-
+    // TODO check if device is already connected
+    if (mPeripheral.is_connected()) {
+        console
+                << "warning device '"
+                << mPeripheral.identifier()
+                << "' is already connected."
+                << endl;
+        return false;
+    }
     /* test for supported characteristics */
     fCurrentConnectedDeviceIndex++;
     auto *mDevice = new Device(&mPeripheral, fCurrentConnectedDeviceIndex);
@@ -227,6 +242,7 @@ static void connect_device_by_peripheral_index(int peripheral_index) {
                 << "' with 'connected device index' "
                 << fCurrentConnectedDeviceIndex
                 << endl;
+        return true;
     } else {
         console
                 << "warning device '"
@@ -237,6 +253,7 @@ static void connect_device_by_peripheral_index(int peripheral_index) {
                 << " … disconnecting device."
                 << endl;
         fCurrentConnectedDeviceIndex--;
+        return false;
     }
 }
 
@@ -248,22 +265,54 @@ Device *get_device(int connected_device_index) {
     return fConnectedDevices[connected_device_index];
 }
 
+static bool isPeripheralAddress(const string &str) {
+    // Check for 128-bit UUID format
+    std::regex r1("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    // Check for 16-bit or 32-bit UUID format
+    std::regex r2("^0000[0-9a-fA-F]{2,4}-0000-1000-8000-00805f9b34fb$");
+    return std::regex_match(str, r1) || std::regex_match(str, r2);
+}
+
+static bool isPeripheralName(const string &str) {
+    return !str.empty() && !isPeripheralAddress(str);
+}
 
 int connect_device(int peripheral_index) {
-    // TODO check index first
-//    return ERROR;
-    connect_device_by_peripheral_index(peripheral_index);
-    return fCurrentConnectedDeviceIndex;
+    bool mSuccess = connect_device_by_peripheral_index(peripheral_index);
+    if (mSuccess) {
+        return fCurrentConnectedDeviceIndex;
+    } else {
+        return ERROR;
+    }
 }
 
 int connect_device(std::string &name_or_UUID) {
-    // TODO convert name or UUID to index first
-    console
-            << "connect_device(std::string &name_or_UUID) not implemented yet."
-            << endl;
-//    return ERROR;
-    connect_device_by_peripheral_index(0);
-    return fCurrentConnectedDeviceIndex;
+    int mPeripheralIndex = NO_DEVICE_FOUND;
+//    mPeripheralIndex = find_device_by_name(name_or_UUID);
+//    if (mPeripheralIndex == NO_DEVICE_FOUND) {
+//        mPeripheralIndex = find_device_by_address(name_or_UUID);
+//    }
+    if (isPeripheralAddress(name_or_UUID)) {
+        mPeripheralIndex = find_device_by_address(name_or_UUID);
+    } else if (isPeripheralName(name_or_UUID)) {
+        mPeripheralIndex = find_device_by_name(name_or_UUID);
+    }
+
+    if (mPeripheralIndex == NO_DEVICE_FOUND) {
+        error
+                << "could not find device with name or UUID '"
+                << name_or_UUID
+                << "'"
+                << endl;
+        return ERROR;
+    }
+
+    bool mSuccess = connect_device_by_peripheral_index(mPeripheralIndex);
+    if (mSuccess) {
+        return fCurrentConnectedDeviceIndex;
+    } else {
+        return ERROR;
+    }
 }
 
 static void handle_connect(const string &type, const vector<string> &input) {

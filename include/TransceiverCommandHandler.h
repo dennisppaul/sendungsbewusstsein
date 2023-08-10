@@ -57,7 +57,7 @@ public:
                     << "command '"
                     << string(COMMAND_MAP[mCommand].name)
                     << "'"
-                    << "(" << mCommand << ") "
+                    << " (" << mCommand << ") "
                     << "is supported."
                     << endl;
             handle_command(typetag, message, mCommand);
@@ -90,45 +90,58 @@ private:
         return false;
     }
 
-    void handle_scan_for_devices(string &typetag, vector<any> &message, const int command) {
+    static void handle_scan_for_devices(string &typetag, vector<any> &message, const int command) {
         int mScanDurationMillis = any_cast<int>(message[1]);
         scan_for_devices(mScanDurationMillis, true);
         Transceiver::instance()->scan_for_devices(mScanDurationMillis,
                                                   get_number_of_available_devices());
     }
 
-    void handle_connect_device(string &typetag, vector<any> &message, const int command) {
+    static void handle_connect_device(string &typetag, vector<any> &message, const int command) {
         if (typetag == COMMAND_MAP[command].typetag) {
-            int mPeripheral           = any_cast<int>(message[1]);
-            int mConnectedDeviceIndex = connect_device(mPeripheral);
-            if (mConnectedDeviceIndex != ERROR) {
-                Device    *mDevice                 = get_device(mConnectedDeviceIndex);
-                const int mNumberOfCharacteristics = (mDevice != nullptr)
-                                                     ? mDevice->get_number_of_supported_characteristics() : 0;
-                Transceiver::instance()->connect_device(mPeripheral,
-                                                        mConnectedDeviceIndex,
-                                                        mNumberOfCharacteristics);
-            } else {
-                Transceiver::instance()->connect_device(mPeripheral,
-                                                        ERROR,
-                                                        0);
+            if (message[1].type() == typeid(int)) {
+                int mPeripheral           = any_cast<int>(message[1]);
+                int mConnectedDeviceIndex = connect_device(mPeripheral);
+                if (mConnectedDeviceIndex != ERROR) {
+                    Device    *mDevice                 = get_device(mConnectedDeviceIndex);
+                    const int mNumberOfCharacteristics = (mDevice != nullptr)
+                                                         ? mDevice->get_number_of_supported_characteristics() : 0;
+                    Transceiver::instance()->connect_device(mPeripheral,
+                                                            mConnectedDeviceIndex,
+                                                            mNumberOfCharacteristics);
+                } else {
+                    Transceiver::instance()->connect_device(mPeripheral,
+                                                            ERROR,
+                                                            0);
+                }
+                return;
             }
         } else if (typetag == COMMAND_MAP[command].typetag_alt) {
-            string mPeripheral           = any_cast<string>(message[1]);
-            int    mConnectedDeviceIndex = connect_device(mPeripheral);
-            if (mConnectedDeviceIndex != ERROR) {
-                Device    *mDevice                 = get_device(mConnectedDeviceIndex);
-                const int mNumberOfCharacteristics = (mDevice != nullptr)
-                                                     ? mDevice->get_number_of_supported_characteristics() : 0;
-                Transceiver::instance()->connect_device(mPeripheral,
-                                                        mConnectedDeviceIndex,
-                                                        mNumberOfCharacteristics);
-            } else {
-                Transceiver::instance()->connect_device(mPeripheral,
-                                                        ERROR,
-                                                        0);
+            if (message[1].type() == typeid(const char *) || message[1].type() == typeid(std::string)) {
+                auto mPeripheral           = string(any_cast<const char *>(message[1]));
+                int  mConnectedDeviceIndex = connect_device(mPeripheral);
+                if (mConnectedDeviceIndex != ERROR) {
+                    Device    *mDevice                 = get_device(mConnectedDeviceIndex);
+                    const int mNumberOfCharacteristics = (mDevice != nullptr)
+                                                         ? mDevice->get_number_of_supported_characteristics() : 0;
+                    Transceiver::instance()->connect_device(mPeripheral,
+                                                            mConnectedDeviceIndex,
+                                                            mNumberOfCharacteristics);
+                } else {
+                    Transceiver::instance()->connect_device(mPeripheral,
+                                                            ERROR,
+                                                            0);
+                }
+                return;
             }
         }
+        error
+                << "problem parsing connect message: "
+                << command
+                << " ("
+                << typetag
+                << ")"
+                << endl;
     }
 
     void handle_command(string &typetag, vector<any> &message, const int command) {

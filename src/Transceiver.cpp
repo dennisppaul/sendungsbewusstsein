@@ -201,22 +201,22 @@ void Transceiver::send_characteristic_information_with_value(const int device_in
 }
 
 
-void Transceiver::send_characteristic_feature_with_value(const int device_index,
-                                                         const int characteristic_index,
-                                                         const int feature_index,
-                                                         const float value) {
-    send_iiif(INFO_CHARACTERISTIC_WITH_VALUE,
+void Transceiver::send_feature_with_value(const int device_index,
+                                          const int characteristic_index,
+                                          const int feature_index,
+                                          const float value) {
+    send_iiif(INFO_FEATURE_WITH_VALUE,
               device_index,
               characteristic_index,
               feature_index,
               value);
 }
 
-void Transceiver::send_characteristic_feature_with_value(const int device_index,
-                                                         const int characteristic_index,
-                                                         string &feature_name,
-                                                         const float value) {
-    send_iisf(INFO_CHARACTERISTIC_WITH_VALUE,
+void Transceiver::send_feature_with_value(const int device_index,
+                                          const int characteristic_index,
+                                          string &feature_name,
+                                          const float value) {
+    send_iisf(INFO_FEATURE_WITH_VALUE,
               device_index,
               characteristic_index,
               feature_name,

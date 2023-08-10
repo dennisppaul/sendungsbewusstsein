@@ -39,9 +39,9 @@ protected:
     const int             fSupportedCharacteristicIndex;
 
     void send(const int feature, const float value) {
-        Transceiver::instance()->send_characteristic_feature_with_value(fConnectedDeviceIndex,
-                                                                        fSupportedCharacteristicIndex,
-                                                                        feature,
-                                                                        value);
+        Transceiver::instance()->send_feature_with_value(fConnectedDeviceIndex,
+                                                         fSupportedCharacteristicIndex,
+                                                         feature,
+                                                         value);
     }
 };

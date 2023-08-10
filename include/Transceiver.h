@@ -120,15 +120,15 @@ public:
                                                     int information,
                                                     int value);
 
-    void send_characteristic_feature_with_value(int device_index,
-                                                int characteristic_index,
-                                                int feature_index,
-                                                float value);
+    void send_feature_with_value(int device_index,
+                                 int characteristic_index,
+                                 int feature_index,
+                                 float value);
 
-    void send_characteristic_feature_with_value(int device_index,
-                                                int characteristic_index,
-                                                string &feature_name,
-                                                float value);
+    void send_feature_with_value(int device_index,
+                                 int characteristic_index,
+                                 string &feature_name,
+                                 float value);
 
     void send_watchdog(int interval_in_milliseconds);
 

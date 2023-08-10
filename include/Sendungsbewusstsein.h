@@ -53,7 +53,7 @@ static const int INFO_DEVICE                    = 0;
 static const int INFO_DEVICE_WITH_VALUE         = 1;
 static const int INFO_CHARACTERISTIC            = 2;
 static const int INFO_CHARACTERISTIC_WITH_VALUE = 3;
-static const int INFO_FEATURE                   = 4;
+static const int INFO_FEATURE_WITH_VALUE        = 4;
 static const int INFO_WATCHDOG                  = 5;
 
 /* information values */
