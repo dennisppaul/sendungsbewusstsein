@@ -8,7 +8,7 @@ void scan_for_devices(int timeout_ms,
 
 int get_number_of_available_devices();
 
-Device *get_device(int connected_device_index);
+const shared_ptr<Device> &get_device(int connected_device_index);
 
 void reset_connected_devices();
 

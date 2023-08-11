@@ -213,6 +213,5 @@ void Transceiver::send_feature_with_value(const int device_index,
 }
 
 void Transceiver::send_watchdog(const int interval_in_milliseconds) {
-    send_i(INFO_WATCHDOG,
-           interval_in_milliseconds);
+    send_i(INFO_WATCHDOG, interval_in_milliseconds);
 }

@@ -14,13 +14,20 @@ using namespace std;
 class Device {
 public:
 
-    Device(Peripheral *peripheral, int connected_device_index) :
+    Device(const shared_ptr<SimpleBLE::Peripheral> &peripheral, int connected_device_index) :
             fPeripheral(peripheral),
             fConnectedDeviceIndex(connected_device_index),
             fName(peripheral->identifier()) {
         // TODO maybe setup `set_callback_on_connected` and `set_callback_on_disconnected` here
-        peripheral->set_callback_on_connected([]() { console << "device connected" << std::endl; });
-        peripheral->set_callback_on_disconnected([]() { console << "device disconnected" << std::endl; });
+        fIsConnected = false;
+        peripheral->set_callback_on_connected([this]() {
+            console << "device connected" << std::endl;
+            this->fIsConnected = true;
+        });
+        peripheral->set_callback_on_disconnected([this]() {
+            console << "device disconnected" << std::endl;
+            fIsConnected = false;
+        });
 
         connect();
         update_services_and_characteristics();
@@ -79,6 +86,13 @@ public:
                                                              DISCONNECT_DEVICE);
             fPeripheral->disconnect();
         }
+
+        while (fIsConnected) {
+            console
+                    << "waiting to disconnect"
+                    << endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
     }
 
     std::string name() {
@@ -98,9 +112,10 @@ public:
     }
 
 private:
+    bool                                       fIsConnected;
     std::string                                fName;
     const int                                  fConnectedDeviceIndex;
-    Peripheral                                 *fPeripheral;
+    shared_ptr<SimpleBLE::Peripheral>          fPeripheral;
     vector<pair<BluetoothUUID, BluetoothUUID>> uuids;
     vector<unique_ptr<CharacteristicAbstract>> supported_characeristics;
 

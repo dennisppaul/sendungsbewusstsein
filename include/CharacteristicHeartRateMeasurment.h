@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "Sendungsbewusstsein.h"
 #include "CharacteristicAbstract.h"
 #include "CharacteristicsFactory.h"
@@ -10,10 +12,10 @@ using namespace SimpleBLE;
 
 class CharacteristicHeartRateMeasurment : public CharacteristicAbstract {
 public:
-    CharacteristicHeartRateMeasurment(Peripheral *peripheral,
+    CharacteristicHeartRateMeasurment(shared_ptr<SimpleBLE::Peripheral> peripheral,
                                       int connected_device_index,
                                       int supported_characteristic_index)
-            : CharacteristicAbstract(peripheral,
+            : CharacteristicAbstract(std::move(peripheral),
                                      connected_device_index,
                                      supported_characteristic_index) {}
 
@@ -58,7 +60,13 @@ public:
                 << CHARACTERISTIC
                 << std::endl;
 
-        fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC);
+        try {
+            fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC);
+        } catch (const exception &e) {
+            // TODO not sure if this is still necessary … there is a potential problem in 'PeripheralBaseMacOS.mm' with premature failure to unsubscribe
+            console << "could not unsubscripe" << endl;
+        }
+
         Transceiver::instance()->send_characteristic_information(fConnectedDeviceIndex,
                                                                  fSupportedCharacteristicIndex,
                                                                  UNSUBSCRIBED);
@@ -71,7 +79,7 @@ public:
     void static register_characteristic() {
         CharacteristicFactory::register_characteristic(SERVICE, CHARACTERISTIC,
                                                        [](
-                                                               Peripheral *peripheral,
+                                                               const shared_ptr<SimpleBLE::Peripheral> &peripheral,
                                                                int connected_device_index,
                                                                int supported_characteristic_index) -> std::unique_ptr<CharacteristicAbstract> {
                                                            return std::make_unique<CharacteristicHeartRateMeasurment>(

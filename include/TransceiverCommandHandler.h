@@ -11,7 +11,7 @@ using namespace SimpleBLE;
 
 class TransceiverCommandHandler {
 public:
-    void handle_message(string &typetag, vector<any> &message) {
+    static void handle_message(string &typetag, vector<any> &message) {
         if (message.empty()) {
             error
                     << "message is empty"
@@ -150,9 +150,10 @@ private:
                 int mPeripheral           = any_cast<int>(message[1]);
                 int mConnectedDeviceIndex = connect_device(mPeripheral);
                 if (mConnectedDeviceIndex != ERROR) {
-                    Device    *mDevice                 = get_device(mConnectedDeviceIndex);
-                    const int mNumberOfCharacteristics = (mDevice != nullptr)
-                                                         ? mDevice->get_number_of_supported_characteristics() : 0;
+                    const shared_ptr<Device> &mDevice                 = get_device(mConnectedDeviceIndex);
+                    const int                mNumberOfCharacteristics = (mDevice != nullptr)
+                                                                        ? mDevice->get_number_of_supported_characteristics()
+                                                                        : 0;
                     Transceiver::instance()->connect_device(mPeripheral,
                                                             mConnectedDeviceIndex,
                                                             mNumberOfCharacteristics);
@@ -168,9 +169,10 @@ private:
                 auto mPeripheral           = string(any_cast<const char *>(message[1]));
                 int  mConnectedDeviceIndex = connect_device(mPeripheral);
                 if (mConnectedDeviceIndex != ERROR) {
-                    Device    *mDevice                 = get_device(mConnectedDeviceIndex);
-                    const int mNumberOfCharacteristics = (mDevice != nullptr)
-                                                         ? mDevice->get_number_of_supported_characteristics() : 0;
+                    const shared_ptr<Device> &mDevice                 = get_device(mConnectedDeviceIndex);
+                    const int                mNumberOfCharacteristics = (mDevice != nullptr)
+                                                                        ? mDevice->get_number_of_supported_characteristics()
+                                                                        : 0;
                     Transceiver::instance()->connect_device(mPeripheral,
                                                             mConnectedDeviceIndex,
                                                             mNumberOfCharacteristics);

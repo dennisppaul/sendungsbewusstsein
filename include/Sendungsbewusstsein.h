@@ -40,8 +40,7 @@ static const CommandItem COMMAND_MAP[NUM_COMMANDS] = {
 
 /* command values */
 
-static const int ALL_DEVICES = -1; // TODO use this in `disconnect_device`
-
+static const int ALL_DEVICES = -1;
 
 struct InformationItem {
     const int  cmd;
@@ -64,7 +63,7 @@ static const InformationItem INFORMATION_MAP[NUM_INFORMATION] = {
         {INFO_CHARACTERISTIC,            "send_characteristic_information",            "iiii"},
         {INFO_CHARACTERISTIC_WITH_VALUE, "send_characteristic_information_with_value", "iiiii"},
         {INFO_FEATURE_WITH_VALUE,        "send_feature_with_value",                    "iiisf"},
-        {INFO_WATCHDOG,                  "send_watchdog",                              "iiiif"}
+        {INFO_WATCHDOG,                  "send_watchdog",                              "ii"}
 };
 
 /* information values */

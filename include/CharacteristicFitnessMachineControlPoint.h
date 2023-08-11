@@ -31,7 +31,7 @@ O   = Optional
 
 class CharacteristicFitnessMachineControlPoint : public CharacteristicAbstract {
 public:
-    CharacteristicFitnessMachineControlPoint(Peripheral *peripheral,
+    CharacteristicFitnessMachineControlPoint(shared_ptr<SimpleBLE::Peripheral> peripheral,
                                              int connected_device_index,
                                              int supported_characteristic_index)
             : CharacteristicAbstract(peripheral,
@@ -119,7 +119,7 @@ public:
     void static register_characteristic() {
         CharacteristicFactory::register_characteristic(SERVICE, CHARACTERISTIC,
                                                        [](
-                                                               Peripheral *peripheral,
+                                                               const shared_ptr<SimpleBLE::Peripheral> &peripheral,
                                                                int connected_device_index,
                                                                int supported_characteristic_index) -> std::unique_ptr<CharacteristicAbstract> {
                                                            return std::make_unique<CharacteristicFitnessMachineControlPoint>(

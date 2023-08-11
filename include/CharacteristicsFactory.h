@@ -10,7 +10,7 @@
 
 class CharacteristicFactory {
 public:
-    using createFn = std::unique_ptr<CharacteristicAbstract> (*)(SimpleBLE::Peripheral *, int, int);
+    using createFn = std::unique_ptr<CharacteristicAbstract> (*)(const shared_ptr<SimpleBLE::Peripheral>&, int, int);
 
     static void
     register_characteristic(const std::string &service, const std::string &characteristic, createFn createFn) {
@@ -20,7 +20,7 @@ public:
     static std::unique_ptr<CharacteristicAbstract>
     create(const std::string &service,
            const std::string &characteristic,
-           SimpleBLE::Peripheral *peripheral,
+           shared_ptr<SimpleBLE::Peripheral> peripheral,
            const int connected_device_index,
            const int supported_characteristic_index) {
         auto it = characteristic_registry().find(std::make_pair(service, characteristic));

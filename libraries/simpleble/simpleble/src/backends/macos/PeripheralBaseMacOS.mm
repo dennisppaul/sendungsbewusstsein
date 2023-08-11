@@ -327,8 +327,8 @@ typedef struct {
         CBCharacteristic* characteristic = serviceAndCharacteristic.second;
         [self.peripheral setNotifyValue:NO forCharacteristic:characteristic];
 
-        // Wait for the update to complete for up to 1 second.
-        NSDate* endDate = [NSDate dateWithTimeInterval:1.0 sinceDate:NSDate.now];
+        // Wait for the update to complete for up to 1 second. @dpp(increased interval to 2.5 sec)
+        NSDate* endDate = [NSDate dateWithTimeInterval:2.5 sinceDate:NSDate.now];
         while (characteristic.isNotifying && [NSDate.now compare:endDate] == NSOrderedAscending) {
             [NSThread sleepForTimeInterval:0.01];
         }
