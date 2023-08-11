@@ -45,6 +45,10 @@ public:
         // write_request + indicate
     }
 
+    void cleanup() override {
+        unsubscribe();
+    }
+
     void subscribe() override {
         console << "CharacteristicFitnessMachineControlPoint::subscribe ( > indicate )" << endl;
         auto mCallback = bind( // NOLINT(*-avoid-bind)

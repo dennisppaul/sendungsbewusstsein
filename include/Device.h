@@ -32,7 +32,7 @@ public:
     }
 
     int get_number_of_supported_characteristics() {
-        return supported_characeristics.size();
+        return static_cast<int>( supported_characeristics.size());
     }
 
     void connect() {
@@ -59,7 +59,19 @@ public:
         console
                 << "trying to disconnect from device '"
                 << fName
-                << "'"
+                << "' "
+                << endl;
+
+        console
+                << "cleaning up characteristic"
+                << endl;
+
+        for (auto &characteristic: supported_characeristics) {
+            characteristic->cleanup();
+        }
+
+        console
+                << "disconnecting from device"
                 << endl;
 
         if (fPeripheral->is_connected()) {

@@ -17,7 +17,9 @@ public:
 
     virtual ~CharacteristicAbstract() = default;
 
-    virtual void init() = 0; /* is called once and can implement default behaviors i.e subscribing to notifications */
+    virtual void init() = 0; /* is called once in the begining and can implement default behaviors i.e subscribing to notifications */
+
+    virtual void cleanup() = 0; /* is called once in the end and can implement default behaviors i.e unsubscribing from notifications */
 
     virtual void subscribe() = 0; /* ... to notification */
 
@@ -38,7 +40,7 @@ protected:
     const int             fConnectedDeviceIndex;
     const int             fSupportedCharacteristicIndex;
 
-    void send(const int feature, const float value) {
+    void send(const int feature, const float value) const {
         Transceiver::instance()->send_feature_with_value(fConnectedDeviceIndex,
                                                          fSupportedCharacteristicIndex,
                                                          feature,

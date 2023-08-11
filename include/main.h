@@ -10,6 +10,12 @@ int get_number_of_available_devices();
 
 Device *get_device(int connected_device_index);
 
+void reset_connected_devices();
+
+int get_number_of_connected_devices();
+
 int connect_device(int peripheral_index);
 
 int connect_device(std::string &name_or_UUID);
+
+int disconnect_device(int connected_device_index);

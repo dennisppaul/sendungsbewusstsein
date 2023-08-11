@@ -152,6 +152,8 @@ typetag .... : ii
 example .... : CMD_DISCONNECT_DEVICE,0
 ```
 
+note that instead of sending a `device_index` the client can also send `ALL_DEVICES` to disconnect all devices and reset the index.
+
 #### subscribe_to_characteristic
 
 client requests to subscribe to a characteristic of a device.
@@ -330,10 +332,12 @@ send value of a feature to client ( often repeating value send from subscribed c
 ```
 info ....... : send_feature_with_value(device_index,
                                        characteristic_index,
-                                       (feature_index/feature_name), 
+                                       feature_index, 
                                        value)
-typetag .... : iii(i/s)f
+typetag .... : iiiif
 example .... : INFO_FEATURE_WITH_VALUE,0,1,"heartrate",52
 ```
 
-==@TODO see how to best implement both `feature_name` and `feature_index`==
+#### send_watchdog
+
+==@TODO==

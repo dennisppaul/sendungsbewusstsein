@@ -25,7 +25,7 @@ public:
                 mCommand = std::any_cast<int>(message[0]);
             }
 
-            if (mCommand <= ERROR || mCommand >= NUM_CMDS) {
+            if (mCommand <= ERROR || mCommand >= NUM_COMMANDS) {
                 error
                         << "command ("
                         << mCommand
@@ -74,6 +74,16 @@ public:
 
 private:
 
+    static void die(string &typetag, vector<any> &message, const int command) {
+        error
+                << "problem parsing connect message: "
+                << command
+                << " ("
+                << typetag
+                << ")"
+                << endl;
+    }
+
     static bool evaluate_transceiver_command(string &typetag, const int command) {
         for (auto &mCommand: COMMAND_MAP) {
             if (mCommand.cmd == command) {
@@ -91,13 +101,50 @@ private:
     }
 
     static void handle_scan_for_devices(string &typetag, vector<any> &message, const int command) {
-        int mScanDurationMillis = any_cast<int>(message[1]);
-        scan_for_devices(mScanDurationMillis, true);
-        Transceiver::instance()->scan_for_devices(mScanDurationMillis,
-                                                  get_number_of_available_devices());
+//        #### scan_for_devices
+//
+//        client requests to update available device list.
+//
+//        ```
+//        command .... : scan_for_devices(duration_in_milliseconds)
+//        typetag .... : ii
+//        example .... : CMD_SCAN_FOR_DEVICES,5000
+//
+//        response ... : command,
+//                duration_in_milliseconds,
+//                number_of_devices
+//        typetag .... : iii
+//        example .... : CMD_SCAN_FOR_DEVICES,5000,12
+//        ```
+
+        if (message[1].type() == typeid(int)) {
+            int mScanDurationMillis = any_cast<int>(message[1]);
+            scan_for_devices(mScanDurationMillis, true);
+            Transceiver::instance()->scan_for_devices(mScanDurationMillis,
+                                                      get_number_of_available_devices());
+        } else {
+            die(typetag, message, command);
+        }
     }
 
     static void handle_connect_device(string &typetag, vector<any> &message, const int command) {
+//        #### connect_device
+//
+//        client requests that the server connects to a device. note, that a device can be specified either by *available* device index, name or UUID. further note, that the *available* device index refers to the order of list of scanned devices, whereas the *‌device_index* which is returned in the response refers to the index of the connected devices.
+//
+//        ```
+//        command .... : connect_device(available_device_index/name/UUID)
+//        typetag .... : i(i/s/s)
+//        example .... : CMD_CONNECT_DEVICE,"Wahoo KICKR"
+//
+//        response ... : command,
+//                available_device_index/name/UUID,
+//                device_index,
+//                number_of_characteristics
+//        typetag .... : i(i/s/s)ii
+//        example .... : CMD_CONNECT_DEVICE,"Wahoo KICKR",0,4
+//        ```
+
         if (typetag == COMMAND_MAP[command].typetag) {
             if (message[1].type() == typeid(int)) {
                 int mPeripheral           = any_cast<int>(message[1]);
@@ -135,19 +182,44 @@ private:
                 return;
             }
         }
-        error
-                << "problem parsing connect message: "
-                << command
-                << " ("
-                << typetag
-                << ")"
-                << endl;
+        die(typetag, message, command);
     }
 
-    void handle_command(string &typetag, vector<any> &message, const int command) {
+    static void handle_disconnect_device(string &typetag, vector<any> &message, const int command) {
+//        #### disconnect_device
+//
+//        client requests that the server disconnects from a device.
+//
+//        ```
+//        command .... : disconnect_device(device_index)
+//        typetag .... : ii
+//        example .... : CMD_DISCONNECT_DEVICE,0
+//
+//        response ... : command,
+//                device_index
+//        typetag .... : ii
+//        example .... : CMD_DISCONNECT_DEVICE,0
+//        ```
+        if (message[1].type() == typeid(int)) {
+            int mDeviceIndex = any_cast<int>(message[1]);
+            if (mDeviceIndex == ALL_DEVICES) {
+                for (int i = 0; i < get_number_of_connected_devices(); i++) {
+                    disconnect_device(i);
+                    Transceiver::instance()->disconnect_device(i);
+                }
+                reset_connected_devices();
+            } else {
+                disconnect_device(mDeviceIndex);
+                Transceiver::instance()->disconnect_device(mDeviceIndex);
+            }
+        } else {
+            die(typetag, message, command);
+        }
+    }
+
+    static void handle_command(string &typetag, vector<any> &message, const int command) {
         /*
-        - `scan_for_devices`                // in main
-        - `connect_device`                  // in main
+         * TODO
         - `disconnect_device`               // in main
         - `subscribe_to_characteristic`     // in Device
         - `unsubscribe_from_characteristic` // in Device
@@ -165,8 +237,10 @@ private:
                 handle_connect_device(typetag, message, command);
                 break;
             case CMD_DISCONNECT_DEVICE:
+                handle_disconnect_device(typetag, message, command);
                 break;
             case CMD_SUBSCRIBE_TO_CHARACTERISTIC:
+                // TODO maybe send all device features, too?
                 break;
             case CMD_UNSUBSCRIBE_FROM_CHARACTERISTIC:
                 break;

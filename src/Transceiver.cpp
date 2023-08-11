@@ -212,17 +212,6 @@ void Transceiver::send_feature_with_value(const int device_index,
               value);
 }
 
-void Transceiver::send_feature_with_value(const int device_index,
-                                          const int characteristic_index,
-                                          string &feature_name,
-                                          const float value) {
-    send_iisf(INFO_FEATURE_WITH_VALUE,
-              device_index,
-              characteristic_index,
-              feature_name,
-              value);
-}
-
 void Transceiver::send_watchdog(const int interval_in_milliseconds) {
     send_i(INFO_WATCHDOG,
            interval_in_milliseconds);

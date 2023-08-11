@@ -24,6 +24,10 @@ public:
         subscribe();
     }
 
+    void cleanup() override {
+        unsubscribe();
+    }
+
     void subscribe() override {
         console << "CharacteristicCyclingPowerControlPoint::subscribe ( > indicate )" << endl;
         auto mCallback = bind( // NOLINT(*-avoid-bind)

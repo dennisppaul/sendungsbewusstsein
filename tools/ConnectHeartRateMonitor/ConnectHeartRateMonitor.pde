@@ -6,6 +6,7 @@ NetAddress fRemoteLocation;
 final String SB_ADDRESS_PATTERN = "/sendungsbewusstsein/";
 final int CMD_SCAN_FOR_DEVICES  = 0;
 final int CMD_CONNECT_DEVICE    = 1;
+final int CMD_DISCONNECT_DEVICE    = 2;
 final int CMD_GET_DEVICE_NAME   = 5;
 final int CMD_GET_FEATURE_NAME  = 7;
 
@@ -45,6 +46,15 @@ void connect_device() {
     print_message(mMessage);
 }
 
+
+void disconnect_device() {
+    OscMessage mMessage = new OscMessage(SB_ADDRESS_PATTERN);
+    mMessage.add(CMD_DISCONNECT_DEVICE);
+    mMessage.add(0); // device_index
+    oscP5.send(mMessage, fRemoteLocation);
+    print_message(mMessage);
+}
+
 void keyPressed() {
     switch(key) {
     case 's':
@@ -52,6 +62,9 @@ void keyPressed() {
         break;
     case 'c':
         connect_device();
+        break;
+    case 'd':
+        disconnect_device();
         break;
     }
 }

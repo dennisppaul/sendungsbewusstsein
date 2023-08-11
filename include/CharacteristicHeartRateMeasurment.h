@@ -21,6 +21,10 @@ public:
         subscribe();
     }
 
+    void cleanup() override {
+        unsubscribe();
+    }
+
     void subscribe() override {
         console
                 << "subscribing to '"
@@ -44,6 +48,16 @@ public:
     }
 
     void unsubscribe() override {
+        console
+                << "unsubscribing from '"
+                << name()
+                << "' "
+                << "as service "
+                << SERVICE
+                << " with characteristic "
+                << CHARACTERISTIC
+                << std::endl;
+
         fPeripheral->unsubscribe(SERVICE, CHARACTERISTIC);
         Transceiver::instance()->send_characteristic_information(fConnectedDeviceIndex,
                                                                  fSupportedCharacteristicIndex,

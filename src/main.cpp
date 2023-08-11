@@ -23,6 +23,8 @@
 #include "CharacteristicIndoorBikeData.h"
 #include "CharacteristicFitnessMachineControlPoint.h"
 
+// TODO add `reset_connected_devices` to CLI
+
 using namespace std;
 using namespace SimpleBLE;
 
@@ -57,7 +59,11 @@ void scan_for_devices(int timeout_ms,
         return;
     }
 
-    console << "scanning for available devices ( " << timeout_ms << "ms )" << endl;
+    console
+            << "scanning for available devices ( "
+            << timeout_ms
+            << "ms )"
+            << endl;
 
     fAvailablePeripherals.clear();
 
@@ -120,6 +126,22 @@ void scan_for_devices(int timeout_ms,
 
 int get_number_of_available_devices() {
     return static_cast<int>(fAvailablePeripherals.size());
+}
+
+void reset_connected_devices() {
+    /* note that this function just disconnects and removes all devices but does not inform about it */
+    for (auto &device: fConnectedDevices) {
+        if (device->is_connected()) {
+            device->disconnect();
+        }
+        delete device;
+    }
+    fCurrentConnectedDeviceIndex = NO_DEVICE_FOUND;
+    fConnectedDevices.clear();
+}
+
+int get_number_of_connected_devices() {
+    return static_cast<int>(fConnectedDevices.size());
 }
 
 static int find_device_by_name(const string &name) {
@@ -337,8 +359,47 @@ static void handle_connect(const string &type, const vector<string> &input) {
 }
 
 static void handle_disconnect(const string &type, const vector<string> &input) {
+    // TODO implement disconnect: only accept 'connected device indices' not names and only single devices? adapt CLI
     console << "disconnect @todo" << endl;
     console << "type: " << type << endl;
+}
+
+int disconnect_device(int connected_device_index) {
+    if (connected_device_index < 0 || connected_device_index >= fConnectedDevices.size()) {
+        error
+                << "could not find device with index "
+                << connected_device_index
+                << endl;
+        return ERROR;
+    }
+
+    auto *mDevice = fConnectedDevices[connected_device_index];
+    if (mDevice != nullptr) {
+        int mDeviceIndex = ERROR;
+        if (mDevice->is_connected()) {
+            mDevice->disconnect();
+            console << "disconnected device '"
+                    << mDevice->name()
+                    << "' with 'connected device index' "
+                    << connected_device_index
+                    << endl;
+            mDeviceIndex = connected_device_index;
+        } else {
+            console << "warning device '"
+                    << mDevice->name()
+                    << "' is already disconnected."
+                    << endl;
+        }
+        fConnectedDevices[connected_device_index] = nullptr;
+        delete mDevice;
+        return mDeviceIndex;
+    } else {
+        console << "warning device ("
+                << connected_device_index
+                << ") is not intialized."
+                << endl;
+        return ERROR;
+    }
 }
 
 static void print_device_capabilities() {

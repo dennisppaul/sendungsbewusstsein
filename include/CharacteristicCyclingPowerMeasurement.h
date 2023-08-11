@@ -22,6 +22,10 @@ public:
         subscribe();
     }
 
+    void cleanup() override {
+        unsubscribe();
+    }
+
     void subscribe() override {
         console
                 << "subscribing to '"
