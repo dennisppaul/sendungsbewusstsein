@@ -471,7 +471,6 @@ public:
     }
 };
 
-
 class ReceivedMessage{
     void Init( const char *bundle, osc_bundle_element_size_t size );
 public:

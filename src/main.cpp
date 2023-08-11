@@ -745,7 +745,7 @@ static void clean_up_BluetoothAdapter() {
 #define SB_HAS_CLI
 #define SB_HAS_WATCHDOG
 #define SB_HAS_OSC
-//#define SB_RUN_AS_CLI
+#define SB_RUN_AS_CLI
 
 #ifdef SB_RUN_AS_CLI
 int main(int argc, char *argv[]) {

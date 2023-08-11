@@ -7,10 +7,6 @@
 #include <vector>
 #include <string>
 
-#include "ip/UdpSocket.h"
-#include "osc/OscOutboundPacketStream.h"
-#include "osc/OscReceivedElements.h"
-
 #include "Console.h"
 #include "StringUtils.h"
 
@@ -20,7 +16,11 @@
 #define DEFAULT_OSC_RECEIVE_PORT            7001
 #define DEFAULT_USE_UDP_MULTICAST           false
 
+#define SB_HAS_OSC
+
 using namespace std;
+
+static const constexpr char *SB_OSC_ADDRESS_PATTERN = "/sendungsbewusstsein/";
 
 class Transceiver {
 public:
@@ -50,7 +50,7 @@ public:
     void finalize() {
         mOSCThread->detach();
         delete mOSCThread;
-        delete mTransmitSocket;
+//        delete mTransmitSocket;
     }
 
     void scan_for_devices(int duration_in_milliseconds, int number_of_devices);
@@ -127,228 +127,47 @@ public:
 
     void send_watchdog(int interval_in_milliseconds);
 
-    void process(const osc::ReceivedMessage &msg) {
-        std::string mAddressPattern = msg.AddressPattern();
-        if (mAddressPattern.starts_with(SB_OSC_ADDRESS_PATTERN)) {}
-        std::vector<std::any>                     message;
-        for (osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin(); arg != msg.ArgumentsEnd(); ++arg) {
-            if (arg->IsString()) {
-                message.emplace_back(arg->AsString());
-            } else if (arg->IsFloat()) {
-                message.emplace_back(arg->AsFloat());
-            } else if (arg->IsDouble()) {
-                message.emplace_back(arg->AsDouble());
-            } else if (arg->IsInt32()) {
-                message.emplace_back(arg->AsInt32());
-            } else if (arg->IsBool()) {
-                message.emplace_back(arg->AsBool());
-            } else if (arg->IsChar()) {
-                message.emplace_back(arg->AsChar());
-            } else {
-                console
-                        << "unknown type in OSC message. "
-                        << "only supporting"
-                        << "string, "
-                        << "float, "
-                        << "double, "
-                        << "int32, "
-                        << "bool, "
-                        << "char."
-                        << endl;
-            }
-        }
-        callback_receive(msg.TypeTags(), message);
-    }
+    void callback_receive(std::string typetag, std::vector<std::any> message);
 
 private:
     typedef void (*CallbackType3_STRING_STRING_ANY)(std::string, std::vector<std::any>);
 
     static Transceiver              *fInstance;
-    static const constexpr char     *SB_OSC_ADDRESS_PATTERN         = "/sendungsbewusstsein/";
     static const uint16_t           OSC_TRANSMIT_OUTPUT_BUFFER_SIZE = 1024;
     thread                          *mOSCThread                     = nullptr;
-    UdpTransmitSocket               *mTransmitSocket                = nullptr;
     CallbackType3_STRING_STRING_ANY pCallback                       = nullptr;
-
-    void callback_receive(std::string typetag, std::vector<std::any> message) {
-        if (pCallback) {
-            pCallback(std::move(typetag), std::move(message));
-        }
-    }
 
     Transceiver(const char *address,
                 int port_transmit,
                 int port_receive,
-                bool use_muilticast) {
-        initialize_transmit_socket(address, port_transmit);
-        mOSCThread = new thread(&Transceiver::osc_thread,
-                                this,
-                                address,
-                                port_transmit,
-                                port_receive,
-                                use_muilticast);
-    }
+                bool use_muilticast);
 
     void osc_thread(const char *address,
                     int port_transmit,
                     int port_receive,
                     bool use_muilticast);
 
-    void initialize_transmit_socket(const char *address, int port_transmit) {
-        mTransmitSocket = new UdpTransmitSocket(IpEndpointName(address, port_transmit));
-    }
+    void initialize_transmit_socket(const char *address, int port_transmit);
 
-#define TRANSCEIVER_CHECK_SOCKET_HEALTH  if (mTransmitSocket == nullptr) { return; }
+    void send_i(const int message, const int a);
 
-    void send_i(const int message, const int a) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_ii(const int message, const int a, const int b);
 
-    void send_ii(const int message, const int a, const int b) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << b
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_iii(const int message, const int a, int b, const int c);
 
-    void send_iii(const int message, const int a, int b, const int c) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << b
-          << c
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_iiii(const int message, const int a, int b, const int c, const int d);
 
-    void send_iiii(const int message, const int a, int b, const int c, const int d) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << b
-          << c
-          << d
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_iiif(const int message, const int a, int b, const int c, const float d);
 
-    void send_iiif(const int message, const int a, int b, const int c, const float d) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << b
-          << c
-          << d
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_iisf(const int message, const int a, int b, string &c, const float d);
 
-    void send_iisf(const int message, const int a, int b, string &c, const float d) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << b
-          << c.c_str()
-          << d
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_is(const int message, const int a, string &b);
 
-    void send_is(const int message, const int a, string &b) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << b.c_str()
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_iis(const int message, const int a, const int b, string &c);
 
-    void send_iis(const int message, const int a, const int b, string &c) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << b
-          << c.c_str()
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_iiis(const int message, const int a, const int b, const int c, string &d);
 
-    void send_iiis(const int message, const int a, const int b, const int c, string &d) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a
-          << b
-          << c
-          << d.c_str()
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
-
-    void send_sii(const int message, string &a, const int b, const int c) {
-        TRANSCEIVER_CHECK_SOCKET_HEALTH
-        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-        osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(SB_OSC_ADDRESS_PATTERN)
-          << message
-          << a.c_str()
-          << b
-          << c
-          << osc::EndMessage
-          << osc::EndBundle;
-        mTransmitSocket->Send(p.Data(), p.Size());
-    }
+    void send_sii(const int message, string &a, const int b, const int c);
 
 public:
     void register_receive_callback(CallbackType3_STRING_STRING_ANY callback) {

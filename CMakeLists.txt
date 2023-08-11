@@ -25,9 +25,10 @@ target_sources(sendungsbewusstsein PRIVATE
         src/Console.cpp
         src/utils.cpp
         src/Transceiver.cpp
-        src/OSCListener.cpp
-        src/main.cpp
+        src/TransceiverNull.cpp
+        src/TransceiverOSC.cpp
         src/StringUtils.cpp
+        src/main.cpp
         ${OSCPACK_SRC}
 )
 set_target_properties(sendungsbewusstsein PROPERTIES LINK_FLAGS "-Wl,-S")
