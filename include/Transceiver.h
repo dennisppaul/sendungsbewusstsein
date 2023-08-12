@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 
+#include "Sendungsbewusstsein.h"
 #include "Console.h"
 #include "StringUtils.h"
 
@@ -15,8 +16,6 @@
 #define DEFAULT_OSC_TRANSMIT_PORT           7000
 #define DEFAULT_OSC_RECEIVE_PORT            7001
 #define DEFAULT_USE_UDP_MULTICAST           false
-
-#define SB_HAS_OSC
 
 using namespace std;
 

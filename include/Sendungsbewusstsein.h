@@ -2,9 +2,15 @@
 
 // TODO convert this to be usable in processing/java
 
+#define SB_HAS_OSC
+#define SB_HAS_CLI
+#define SB_HAS_WATCHDOG
+#define SB_RUN_AS_CLI
+
 //#define DEBUG_INDOOR_BIKE_DATA_FEATURES
 //#define DEBUG_CYCLING_POWER_MEASUREMENT_FEATURES
 //#define DEBUG_HEART_RATE_MEASUREMENT_FEATURES
+//#define DEBUG_DEVICE
 
 struct CommandItem {
     const int  cmd;

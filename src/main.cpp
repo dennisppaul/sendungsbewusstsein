@@ -10,7 +10,6 @@
 
 #include "main.h"
 #include "Console.h"
-#include "Device.h"
 #include "utils.hpp"
 #include "StringUtils.h"
 #include "Transceiver.h"
@@ -372,9 +371,28 @@ static void handle_disconnect(const string &type, const vector<string> &input) {
     // TODO implement disconnect: only accept 'connected device indices' not names and only single devices? adapt CLI
     console << "disconnect @todo" << endl;
     console << "type: " << type << endl;
+    if (type == CONNECTION_TYPE_NAME || type == CONNECTION_TYPE_ADDRESS) {
+        console << "connection type: " << type << " not yet implemented." << endl;
+    } else if (type == CONNECTION_TYPE_INDEX) {
+        if (input.empty()) {
+            console << "device list is emprty" << endl;
+        } else if (input.size() == 1) {
+            try {
+                int mConnectedDeviceIndex = stoi(input[0]);
+                disconnect_device(mConnectedDeviceIndex);
+            } catch (const exception &e) {
+                console << "could not convert device index '" << input[0] << "' to number: " << e.what() << endl;
+            }
+        } else {
+            console << "multiple disconnects not yet implemented." << endl;
+        }
+    } else {
+        console << "connection type: " << type << " not supported" << endl;
+    }
 }
 
 int disconnect_device(int connected_device_index) {
+    // TODO there is still a problem with disconnecting devices. sometimes devices fail to disconnect and there sometimes devices try to disconnect twice.
     if (connected_device_index < 0 || connected_device_index >= fConnectedDevices.size()) {
         error
                 << "could not find device with index "
@@ -382,6 +400,13 @@ int disconnect_device(int connected_device_index) {
                 << endl;
         return ERROR;
     }
+
+    console
+            << "attempting to disconnect from "
+            << fConnectedDevices.size()
+            << " device"
+            << (fConnectedDevices.size() > 1 ? "s" : "")
+            << endl;
 
     auto &mDevice = fConnectedDevices[connected_device_index];
     if (mDevice != nullptr) {
@@ -742,12 +767,8 @@ static void clean_up_BluetoothAdapter() {
     delete fAdapter;
 }
 
-#define SB_HAS_CLI
-#define SB_HAS_WATCHDOG
-#define SB_HAS_OSC
-#define SB_RUN_AS_CLI
-
 #ifdef SB_RUN_AS_CLI
+
 int main(int argc, char *argv[]) {
     bool mExit = false;
     setup_logging();
@@ -824,6 +845,7 @@ int main(int argc, char *argv[]) {
     clean_up_BluetoothAdapter();
     return EXIT_SUCCESS;
 }
+
 #else
 
 void start_sendungsbewusstsein() {

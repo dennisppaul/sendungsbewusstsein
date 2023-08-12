@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Sendungsbewusstsein.h"
 #include "Device.h"
 
 void scan_for_devices(int timeout_ms,

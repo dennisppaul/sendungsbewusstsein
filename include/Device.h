@@ -155,6 +155,7 @@ private:
                 uuids.emplace_back(service.uuid(), characteristic.uuid());
             }
         }
+#ifdef DEBUG_DEVICE
         for (auto &service: fPeripheral->services()) {
             console << "Service: " << service.uuid() << endl;
 
@@ -172,5 +173,6 @@ private:
                 }
             }
         }
+#endif
     }
 };
