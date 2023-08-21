@@ -14,7 +14,7 @@ public:
     CharacteristicIndoorBikeData(shared_ptr<SimpleBLE::Peripheral> peripheral,
                                  int connected_device_index,
                                  int supported_characteristic_index)
-            : CharacteristicAbstract(peripheral,
+            : CharacteristicAbstract(std::move(peripheral),
                                      connected_device_index,
                                      supported_characteristic_index) {}
 

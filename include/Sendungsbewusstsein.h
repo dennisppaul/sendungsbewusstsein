@@ -12,6 +12,9 @@
 //#define DEBUG_HEART_RATE_MEASUREMENT_FEATURES
 //#define DEBUG_DEVICE
 
+static const constexpr char *SB_OSC_ADDRESS_PATTERN = "/sendungsbewusstsein/";
+static const int            NO_DEVICE_FOUND         = -1;
+
 struct CommandItem {
     const int  cmd;
     const char *name;

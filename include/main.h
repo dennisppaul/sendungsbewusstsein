@@ -11,6 +11,8 @@ int get_number_of_available_devices();
 
 const shared_ptr<Device> &get_device(int connected_device_index);
 
+const shared_ptr<Device> &get_null_device();
+
 void reset_connected_devices();
 
 int get_number_of_connected_devices();

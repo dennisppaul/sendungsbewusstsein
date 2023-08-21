@@ -81,6 +81,9 @@ private:
                 << " ("
                 << typetag
                 << ")"
+                << "["
+                << message.size()
+                << "]"
                 << endl;
     }
 
@@ -198,7 +201,7 @@ private:
 //        example .... : CMD_DISCONNECT_DEVICE,0
 //
 //        response ... : command,
-//                device_index
+//                       device_index
 //        typetag .... : ii
 //        example .... : CMD_DISCONNECT_DEVICE,0
 //        ```
@@ -216,6 +219,138 @@ private:
             }
         } else {
             die(typetag, message, command);
+        }
+    }
+
+    static void handle_set_feature_value(string &typetag, vector<any> &message, const int command) {
+//        #### set_feature_value
+//
+//        client requests to set the value of a feature within a characteristic.
+//
+//        ```
+//        command .... : set_feature_value(device_index,
+//                                         characteristic_index,
+//                                         (feature_index/feature_name),
+//                                         value)
+//        typetag .... : iii(i/s)f
+//        example .... : CMD_SET_FEATURE_VALUE,0,1,123
+//
+//        response ... : command,
+//                       device_index,
+//                       characteristic_index,
+//                       feature_name,
+//                       feature_value
+//        typetag .... : iii(i/s)f
+//        example .... : CMD_SET_FEATURE_VALUE,0,1,"heartrate",123
+//        ```
+        int   device_index;
+        int   characteristic_index;
+        int   feature_index;
+        float feature_value;
+        if (!(typetag == COMMAND_MAP[command].typetag || typetag == COMMAND_MAP[command].typetag_alt)) {
+            die(typetag, message, command);
+        }
+        device_index         = any_cast<int>(message[1]);
+        characteristic_index = any_cast<int>(message[2]);
+        feature_value        = any_cast<float>(message[4]);
+
+        shared_ptr<Device> mDevice = get_device(device_index);
+        if (mDevice == get_null_device()) {
+            error
+                    << "device with index '"
+                    << device_index
+                    << "' does not exist."
+                    << endl;
+            die(typetag, message, command);
+            return;
+        }
+        if (!(characteristic_index >= 0 && characteristic_index < mDevice->get_number_of_supported_characteristics())) {
+            error
+                    << "device with index '"
+                    << device_index
+                    << "' does not have characteristic with index '"
+                    << characteristic_index
+                    << "'"
+                    << endl;
+            die(typetag, message, command);
+            return;
+        }
+        CharacteristicAbstract *mCharacteristic = mDevice->get_characteristic(characteristic_index);
+        if (mCharacteristic == nullptr) {
+            error
+                    << "device with index '"
+                    << device_index
+                    << "' has not intialized characteristic with index '"
+                    << characteristic_index
+                    << "'"
+                    << endl;
+            die(typetag, message, command);
+            return;
+        }
+
+        if (typetag == COMMAND_MAP[command].typetag_alt) {
+            auto feature_name = std::string(any_cast<const char *>(message[3]));
+            feature_index = mCharacteristic->get_feature_index_from_string(feature_name);
+            if (!(feature_index >= 0 && feature_index < mCharacteristic->get_number_of_supported_features())) {
+                error
+                        << "device with index '"
+                        << device_index
+                        << "' and characteristic '"
+                        << characteristic_index
+                        << "' does not have feature with name '"
+                        << feature_name
+                        << "'"
+                        << endl;
+                mCharacteristic->print_features();
+                die(typetag, message, command);
+                return;
+            }
+        } else {
+            feature_index = any_cast<int>(message[3]);
+            if (!(feature_index >= 0 && feature_index < mCharacteristic->get_number_of_supported_features())) {
+                error
+                        << "device with index '"
+                        << device_index
+                        << "' and characteristic '"
+                        << characteristic_index
+                        << "' does not have feature with index '"
+                        << feature_index
+                        << "'"
+                        << endl;
+                mCharacteristic->print_features();
+                die(typetag, message, command);
+                return;
+            }
+        }
+
+        Feature *mFeature = mCharacteristic->get_feature(feature_index);
+        if (mFeature == nullptr) {
+            error
+                    << "device with index '"
+                    << device_index
+                    << "' and characteristic '"
+                    << characteristic_index
+                    << "' has not intialized feature with index '"
+                    << feature_index
+                    << "'"
+                    << endl;
+            die(typetag, message, command);
+            return;
+        }
+
+        mFeature->invoke_set_value(feature_value);
+        // TODO sent error messages as well … see above
+        if (typetag == COMMAND_MAP[command].typetag_alt) {
+            auto feature_name = std::string(any_cast<const char *>(message[3]));
+            Transceiver::instance()->set_feature_value(device_index,
+                                                       characteristic_index,
+                                                       feature_name,
+                                                       feature_value);
+        } else {
+            Transceiver::instance()->set_feature_value(device_index,
+                                                       characteristic_index,
+                                                       feature_index,
+                                                       feature_value);
         }
     }
 
@@ -242,19 +377,38 @@ private:
                 handle_disconnect_device(typetag, message, command);
                 break;
             case CMD_SUBSCRIBE_TO_CHARACTERISTIC:
+                console
+                        << "CMD_SUBSCRIBE_TO_CHARACTERISTIC not implemented"
+                        << endl;
                 // TODO maybe send all device features, too?
                 break;
             case CMD_UNSUBSCRIBE_FROM_CHARACTERISTIC:
+                console
+                        << "CMD_UNSUBSCRIBE_FROM_CHARACTERISTIC not implemented"
+                        << endl;
                 break;
             case CMD_GET_DEVICE_NAME:
+                console
+                        << "CMD_GET_DEVICE_NAME not implemented"
+                        << endl;
                 break;
             case CMD_GET_CHARACTERISTIC_NAME:
+                console
+                        << "CMD_GET_CHARACTERISTIC_NAME not implemented"
+                        << endl;
                 break;
             case CMD_GET_FEATURE_NAME:
+                console
+                        << "CMD_GET_FEATURE_NAME not implemented"
+                        << endl;
                 break;
             case CMD_GET_FEATURE_VALUE:
+                console
+                        << "CMD_GET_FEATURE_VALUE not implemented"
+                        << endl;
                 break;
             case CMD_SET_FEATURE_VALUE:
+                handle_set_feature_value(typetag, message, command);
                 break;
             default:
                 error << "unknown command: " << command << endl;

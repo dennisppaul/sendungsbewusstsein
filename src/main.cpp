@@ -27,7 +27,6 @@
 using namespace std;
 using namespace SimpleBLE;
 
-static const int    NO_DEVICE_FOUND                      = -1;
 static const int    DEFAULT_WATCHDOG_SIGNAL_FREQUENCY_MS = 2000;
 static const int    DEFAULT_SCAN_FOR_DEVICE_DURATION_MS  = 5000;
 static const string PROMPT_TOKE                          = "> ";
@@ -286,6 +285,11 @@ static bool connect_device_by_peripheral_index(int peripheral_index) {
         fCurrentConnectedDeviceIndex--;
         return false;
     }
+}
+
+
+const shared_ptr<Device> &get_null_device() {
+    return null_device;
 }
 
 const shared_ptr<Device> &get_device(int connected_device_index) {

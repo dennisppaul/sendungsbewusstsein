@@ -1,6 +1,7 @@
 #pragma once
 
 #include "simpleble/SimpleBLE.h"
+#include "Feature.h"
 
 // TODO add distinction between capabilities i.e notify(aka subscribe/unsubscribe), read, and write
 // TODO rename to `Characteristic` and add namespace
@@ -33,16 +34,70 @@ public:
 
     virtual const char *name() = 0;
 
-//    virtual bool is_supporting_command() = 0;
-//
-//    virtual bool command(std::string &typetag, std::vector<std::any> &message) = 0;
+    int get_feature_index_from_string(std::string &feature_name) {
+        for (int i = 0; i < fFeatures.size(); ++i) {
+            if (fFeatures[i].name() == feature_name) {
+                return i;
+            }
+        }
+        return NO_DEVICE_FOUND;
+    }
+
+    int get_number_of_supported_features() {
+        return fFeatures.size();
+    }
+
+    Feature *get_feature(int feature_index) {
+        if (feature_index < 0 || feature_index >= fFeatures.size()) {
+            return nullptr;
+        }
+        return &fFeatures[feature_index];
+    }
+
+    void print_features() {
+        if (!fFeatures.empty()) {
+            console
+                    << "characteristic "
+                    << "'"
+                    << name()
+                    << "'"
+                    << "["
+                    << fSupportedCharacteristicIndex
+                    << "]"
+                    << " has features: "
+                    << endl;
+            for (int i = 0; i < fFeatures.size(); ++i) {
+                console
+                        << "    feature '"
+                        << fFeatures[i].name()
+                        << "'"
+                        << "["
+                        << i
+                        << "]"
+                        << endl;
+            }
+        } else {
+            console
+                    << "characteristic "
+                    << "'"
+                    << name()
+                    << "'"
+                    << "["
+                    << fSupportedCharacteristicIndex
+                    << "]"
+                    << " has no features"
+                    << endl;
+        }
+    }
 
 protected:
     shared_ptr<SimpleBLE::Peripheral> fPeripheral;
+    vector<Feature>                   fFeatures;
     const int                         fConnectedDeviceIndex;
     const int                         fSupportedCharacteristicIndex;
 
     void send(const int feature, const float value) const {
+        // TODO consider senting not just feature index but also feature name
         Transceiver::instance()->send_feature_with_value(fConnectedDeviceIndex,
                                                          fSupportedCharacteristicIndex,
                                                          feature,

@@ -19,8 +19,6 @@
 
 using namespace std;
 
-static const constexpr char *SB_OSC_ADDRESS_PATTERN = "/sendungsbewusstsein/";
-
 class Transceiver {
 public:
     static Transceiver *init(const char *address, int port_transmit, int port_receive, bool use_muilticast) {

@@ -3,18 +3,6 @@ import netP5.*;
 
 OscP5 oscP5;
 NetAddress fRemoteLocation;
-final String SB_ADDRESS_PATTERN = "/sendungsbewusstsein/";
-final int CMD_SCAN_FOR_DEVICES  = 0;
-final int CMD_CONNECT_DEVICE    = 1;
-final int CMD_DISCONNECT_DEVICE = 2;
-final int CMD_GET_DEVICE_NAME   = 5;
-final int CMD_GET_FEATURE_NAME  = 7;
-
-final int INFO_DEVICE                    = 0;
-final int INFO_CHARACTERISTIC_WITH_VALUE = 3;
-final int INFO_FEATURE_WITH_VALUE        = 4;
-
-final int ALL_DEVICES                    = -1;
 
 void setup() {
     size(1024, 768);
@@ -33,7 +21,7 @@ void print_message(OscMessage mMessage) {
 }
 
 void scan_for_devices() {
-    OscMessage mMessage = new OscMessage(SB_ADDRESS_PATTERN);
+    OscMessage mMessage = new OscMessage(SB_OSC_ADDRESS_PATTERN);
     mMessage.add(CMD_SCAN_FOR_DEVICES);
     mMessage.add(5000); // duration_in_milliseconds
     oscP5.send(mMessage, fRemoteLocation);
@@ -41,7 +29,7 @@ void scan_for_devices() {
 }
 
 void connect_device() {
-    OscMessage mMessage = new OscMessage(SB_ADDRESS_PATTERN);
+    OscMessage mMessage = new OscMessage(SB_OSC_ADDRESS_PATTERN);
     mMessage.add(CMD_CONNECT_DEVICE);
     mMessage.add("WHOOP"); // device_name
     oscP5.send(mMessage, fRemoteLocation);
@@ -50,7 +38,7 @@ void connect_device() {
 
 
 void disconnect_device() {
-    OscMessage mMessage = new OscMessage(SB_ADDRESS_PATTERN);
+    OscMessage mMessage = new OscMessage(SB_OSC_ADDRESS_PATTERN);
     mMessage.add(CMD_DISCONNECT_DEVICE);
     mMessage.add(ALL_DEVICES); // device_index ( -1 = ALL_DEVICES )
     oscP5.send(mMessage, fRemoteLocation);
@@ -72,7 +60,7 @@ void keyPressed() {
 }
 
 void oscEvent(OscMessage message) {
-    if (message.addrPattern().equals(SB_ADDRESS_PATTERN)) {
+    if (message.addrPattern().equals(SB_OSC_ADDRESS_PATTERN)) {
         int mInfoCommand =  message.get(0).intValue();
         if (mInfoCommand == INFO_FEATURE_WITH_VALUE) {
             // from `DOCUMENTATION.md`:

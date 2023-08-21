@@ -11,6 +11,17 @@
 using namespace SimpleBLE;
 using namespace std;
 
+// TODO produce an *index tree* of all characteristics and features with their indices:
+/*
+Device[0]
+├── Characteristic[0]
+├── Characteristic[1]
+│   ├── Feature[0]
+│   └── Feature[1]
+├── Characteristic[2]
+└── Characteristic[3]
+ */
+
 class Device {
 public:
 
@@ -39,7 +50,7 @@ public:
     }
 
     int get_number_of_supported_characteristics() {
-        return static_cast<int>( supported_characeristics.size());
+        return static_cast<int>( supported_characteristics.size());
     }
 
     void connect() {
@@ -73,7 +84,7 @@ public:
                 << "cleaning up characteristic"
                 << endl;
 
-        for (auto &characteristic: supported_characeristics) {
+        for (auto &characteristic: supported_characteristics) {
             characteristic->cleanup();
         }
 
@@ -104,11 +115,18 @@ public:
     }
 
     bool has_supported_characteristics() {
-        return !supported_characeristics.empty();
+        return !supported_characteristics.empty();
     }
 
     bool is_connected() {
         return fPeripheral->is_connected();
+    }
+
+    CharacteristicAbstract *get_characteristic(int characteristic_index) {
+        if (characteristic_index < 0 || characteristic_index >= supported_characteristics.size()) {
+            return nullptr;
+        }
+        return supported_characteristics[characteristic_index].get();
     }
 
 private:
@@ -117,7 +135,7 @@ private:
     const int                                  fConnectedDeviceIndex;
     shared_ptr<SimpleBLE::Peripheral>          fPeripheral;
     vector<pair<BluetoothUUID, BluetoothUUID>> uuids;
-    vector<unique_ptr<CharacteristicAbstract>> supported_characeristics;
+    vector<unique_ptr<CharacteristicAbstract>> supported_characteristics;
 
     void collect_supported_characteristics() {
         int       mSupportedCharacteristicIndex = -1;
@@ -132,13 +150,17 @@ private:
                 if (mCharacteristic) {
                     console << "found supported characteristic: '"
                             << mCharacteristic->name()
-                            << "' ( "
+                            << "'"
+                            << "["
+                            << mSupportedCharacteristicIndex
+                            << "]"
+                            << " ( "
                             << "service: " << service.uuid()
                             << ", characteristic: " << characteristic.uuid()
                             << " )"
                             << endl;
                     mCharacteristic->init();
-                    supported_characeristics.push_back(std::move(mCharacteristic));
+                    supported_characteristics.push_back(std::move(mCharacteristic));
                 } else {
                     mSupportedCharacteristicIndex--;
                 }

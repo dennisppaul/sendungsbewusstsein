@@ -10,16 +10,28 @@
 using namespace SimpleBLE;
 
 class CharacteristicCyclingPowerMeasurement : public CharacteristicAbstract {
+    static const int FEATURE_POWER_ENUM                 = 0;
+    static const int FEATURE_ACCUMULATED_TORQUE_ENUM    = 1;
+    static const int FEATURE_WHEEL_REVOLUTION_DATA_ENUM = 2;
+    static const int FEATURE_CRANK_REVOLUTION_DATA_ENUM = 3;
+
 public:
     CharacteristicCyclingPowerMeasurement(shared_ptr<SimpleBLE::Peripheral> peripheral,
                                           int connected_device_index,
                                           int supported_characteristic_index)
-            : CharacteristicAbstract(peripheral,
+            : CharacteristicAbstract(std::move(peripheral),
                                      connected_device_index,
-                                     supported_characteristic_index) {}
+                                     supported_characteristic_index) {
+
+        fFeatures.emplace_back(Feature("power"));              // FEATURE_POWER_ENUM                 = 0
+        fFeatures.emplace_back(Feature("accumulated_torque")); // FEATURE_ACCUMULATED_TORQUE_ENUM    = 1
+        fFeatures.emplace_back(Feature("wheel_revolutions"));  // FEATURE_WHEEL_REVOLUTION_DATA_ENUM = 2
+        fFeatures.emplace_back(Feature("crank_revolutions"));  // FEATURE_CRANK_REVOLUTION_DATA_ENUM = 3
+    }
 
     void init() override {
         subscribe();
+        print_features();
     }
 
     void cleanup() override {
@@ -42,11 +54,11 @@ public:
                 this,
                 std::placeholders::_1);
         fPeripheral->notify(SERVICE, CHARACTERISTIC, mCallback);
-        // TODO `NUM_FEATURES` maybe needs to be querried from characteristic?
+        // TODO number of features may be querried from characteristic?
         Transceiver::instance()->send_characteristic_information_with_value(fConnectedDeviceIndex,
                                                                             fSupportedCharacteristicIndex,
                                                                             SUBSCRIBED,
-                                                                            NUM_FEATURES);
+                                                                            fFeatures.size());
     }
 
     void unsubscribe() override {
@@ -65,7 +77,7 @@ public:
     void static register_characteristic() {
         CharacteristicFactory::register_characteristic(SERVICE, CHARACTERISTIC,
                                                        [](
-                                                               const shared_ptr<SimpleBLE::Peripheral> & peripheral,
+                                                               const shared_ptr<SimpleBLE::Peripheral> &peripheral,
                                                                int connected_device_index,
                                                                int supported_characteristic_index) -> std::unique_ptr<CharacteristicAbstract> {
                                                            return std::make_unique<CharacteristicCyclingPowerMeasurement>(
@@ -76,18 +88,9 @@ public:
     }
 
 private:
-    constexpr static const char *fName                             = "cycling_power_measurement";
-    constexpr static const char *SERVICE                           = SERVICE_CYCLING_POWER;
-    constexpr static const char *CHARACTERISTIC                    = CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N;
-    static const int            FEATURE_POWER_ENUM                 = 0;
-    constexpr static const char *FEATURE_POWER_STR                 = "power";
-    static const int            FEATURE_ACCUMULATED_TORQUE_ENUM    = 1;
-    constexpr static const char *FEATURE_ACCUMULATED_TORQUE_STR    = "accumulated_torque";
-    static const int            FEATURE_WHEEL_REVOLUTION_DATA_ENUM = 2;
-    constexpr static const char *FEATURE_WHEEL_REVOLUTION_DATA_STR = "wheel_revolutions";
-    static const int            FEATURE_CRANK_REVOLUTION_DATA_ENUM = 3;
-    constexpr static const char *FEATURE_CRANK_REVOLUTION_DATA_STR = "crank_revolutions";
-    static const int            NUM_FEATURES                       = 4;
+    constexpr static const char *fName          = "cycling_power_measurement";
+    constexpr static const char *SERVICE        = SERVICE_CYCLING_POWER;
+    constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_CYCLING_POWER_MEASUREMENT_N;
 
     enum {
         FEATURE_PEDAL_POWER_BALANCE                 = 0x00000001,
@@ -147,7 +150,7 @@ private:
         FLAG_OFFSET_COMPENSATION_INDICATOR         = 0x1000,
     };
 
-    static void print_features(uint16_t flags) {
+    static void print_features_from_flags(uint16_t flags) {
         if (flags & FLAG_PEDAL_POWER_BALANCE_PRESENT) {
             console << "FLAG_PEDAL_POWER_BALANCE_PRESENT" << endl;
             console << "    FLAG_PEDAL_POWER_BALANCE_REFERENCE: ";
@@ -208,7 +211,7 @@ private:
 #ifdef DEBUG_CYCLING_POWER_MEASUREMENT_FEATURES
         console << "CyclingPowerMeasurement:" << endl;
         Utils::print_byte_array_as_bits(bytes);
-        print_features(flags);
+        print_features_from_flags(flags);
 #endif // DEBUG_CYCLING_POWER_MEASUREMENT_FEATURES
 
         /*

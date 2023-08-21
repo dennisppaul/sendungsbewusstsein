@@ -269,7 +269,7 @@ command .... : set_feature_value(device_index,
                                  (feature_index/feature_name), 
                                  value)
 typetag .... : iii(i/s)f
-example .... : CMD_SET_FEATURE_VALUE,0,1,123
+example .... : CMD_SET_FEATURE_VALUE,0,1,"power",42
 
 response ... : command,
                device_index,
@@ -277,7 +277,7 @@ response ... : command,
                feature_name,
                feature_value
 typetag .... : iii(i/s)f
-example .... : CMD_SET_FEATURE_VALUE,0,1,"heartrate",123
+example .... : CMD_SET_FEATURE_VALUE,0,1,"power",42
 ```
 
 ### information ( from server to client )
@@ -335,7 +335,19 @@ info ....... : send_feature_with_value(device_index,
                                        feature_index, 
                                        value)
 typetag .... : iiiif
-example .... : INFO_FEATURE_WITH_VALUE,0,1,"heartrate",52
+example .... : INFO_FEATURE_WITH_VALUE,0,1,3,52
+```
+
+==@TODO(consider senting not just feature index but also feature name) example: ==
+
+```
+info ....... : send_feature_with_value(device_index,
+                                       characteristic_index,
+                                       feature_index, 
+                                       feature_name, 
+                                       value)
+typetag .... : iiiisf
+example .... : INFO_FEATURE_WITH_VALUE,0,1,3,"heartrate",52
 ```
 
 #### send_watchdog
