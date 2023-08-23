@@ -245,6 +245,74 @@ static vector<string> sanitize_device_identifiers(const vector<string> &input) {
     return mInput;
 }
 
+static void print_device_tree() {
+    console
+            << "DEVICE TREE ( [device] [characteristic] [feature] )"
+            << endl;
+    if (fConnectedDevices.empty()) {
+        console
+                << "no devices connected."
+                << endl;
+        return;
+    }
+    console
+            << "."
+            << endl;
+    for (size_t h = 0; h < fConnectedDevices.size(); ++h) {
+        Device *device = fConnectedDevices[h].get();
+        if (device) {
+            const string mItemIndention     = "├── ";
+            const string mItemLastIndention = "└── ";
+            const string mIndention         = "│   ";
+            const string mLastIndention     = "    ";
+
+            const bool   mIsLastDeviceItem = (h == fConnectedDevices.size() - 1);
+            const string mDeviceIndention  = mIsLastDeviceItem ? mItemLastIndention : mItemIndention;
+            console
+                    << mDeviceIndention
+                    << device->name()
+                    << " ["
+                    << device->ID()
+                    << "]"
+                    << endl;
+            for (int i = 0; i < device->get_number_of_supported_characteristics(); ++i) {
+                const bool             mIsLastCharacteristicItem =
+                                               (i == device->get_number_of_supported_characteristics() - 1);
+                const string           mCharacteristicIndention  = (mIsLastDeviceItem ? mLastIndention : mIndention) +
+                                                                   (mIsLastCharacteristicItem ? mItemLastIndention
+                                                                                              : mItemIndention);
+                CharacteristicAbstract *characteristic           = device->get_characteristic(i);
+                if (characteristic) {
+                    console
+                            << mCharacteristicIndention
+                            << characteristic->name()
+                            << " ["
+                            << i
+                            << "]"
+                            << endl;
+                    for (int j = 0; j < characteristic->get_number_of_supported_features(); ++j) {
+                        const bool   mIsLastFeatureItem =
+                                             (j == characteristic->get_number_of_supported_features() - 1);
+                        const string mFeatureIndention  = (mIsLastDeviceItem ? mLastIndention : mIndention) +
+                                                          (mIsLastCharacteristicItem ? mLastIndention : mIndention) +
+                                                          (mIsLastFeatureItem ? mItemLastIndention : mItemIndention);
+                        Feature      *feature           = characteristic->get_feature(j);
+                        if (feature) {
+                            console
+                                    << mFeatureIndention
+                                    << feature->name()
+                                    << " ["
+                                    << j
+                                    << "]"
+                                    << endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 static bool connect_device_by_peripheral_index(int peripheral_index) {
     if (peripheral_index < 0 || peripheral_index >= fAvailablePeripherals.size()) {
         console
@@ -273,6 +341,7 @@ static bool connect_device_by_peripheral_index(int peripheral_index) {
                 << "' with 'connected device index' "
                 << fCurrentConnectedDeviceIndex
                 << endl;
+        print_device_tree();
         return true;
     } else {
         console
@@ -535,6 +604,7 @@ static bool parse_input(int argc, char *argv[]) {
                         ("h,help", "print this help message")
                         ("q,quit", "quit application")
                         ("i,info", "print capabilities of all available devices")
+                        ("t,tree", "print device tree")
                         ("s,scan", "scan for available devices",
                          cxxopts::value<int>()->implicit_value(to_string(DEFAULT_SCAN_FOR_DEVICE_DURATION_MS)))
                         (CMD_DEVICES_CMD,
@@ -557,14 +627,14 @@ static bool parse_input(int argc, char *argv[]) {
                          cxxopts::value<string>());
 
         commands.add_options("OSC")
-                ("w,watchdog",
+                ("watchdog",
                  "frequency of watchdog singals in milliseconds. a value of 0 turns the watchdog off.",
                  cxxopts::value<int>()->implicit_value(to_string(DEFAULT_WATCHDOG_SIGNAL_FREQUENCY_MS)))
-                ("a,address", "OSC message transmit address",
+                ("address", "OSC message transmit address",
                  cxxopts::value<std::string>()->implicit_value("127.0.0.1"))
-                ("t,transmit", "port for transmitting messages", cxxopts::value<int>()->implicit_value("7000"))
-                ("r,receive", "port for receiveing messages", cxxopts::value<int>()->implicit_value("7001"))
-                ("m,multicast", "enable multicast broadcast", cxxopts::value<bool>()->implicit_value("false"));
+                ("transmit", "port for transmitting messages", cxxopts::value<int>()->implicit_value("7000"))
+                ("receive", "port for receiveing messages", cxxopts::value<int>()->implicit_value("7001"))
+                ("multicast", "enable multicast broadcast", cxxopts::value<bool>()->implicit_value("false"));
         commands.parse_positional({CMD_DEVICES, ""});
         auto result = commands.parse(argc, argv);
 
@@ -574,8 +644,12 @@ static bool parse_input(int argc, char *argv[]) {
         }
 
         if (result.count("info")) {
-            console << "info" << endl;
             print_device_capabilities();
+            return false;
+        }
+
+        if (result.count("tree")) {
+            print_device_tree();
             return false;
         }
 
