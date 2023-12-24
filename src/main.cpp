@@ -21,6 +21,7 @@
 #include "CharacteristicCyclingPowerControlPoint.h"
 #include "CharacteristicIndoorBikeData.h"
 #include "CharacteristicFitnessMachineControlPoint.h"
+#include "CharacteristicCyclingSpeedCadence.h"
 
 // TODO add `reset_connected_devices` to CLI
 
@@ -611,19 +612,19 @@ static bool parse_input(int argc, char *argv[]) {
                          "specify devices for connect or disconnect. names that contain space need to be surrounded by quotation marks. indices might change after scan.",
                          cxxopts::value<vector<string>>())
                         (CMD_CONNECT_CMD,
-                         "connect to device either by name (e.g '--connect=name -p \"WHOOP 4A0934182\" '), by address (e.g '--connect=address -p C6FBA-C7E8-0494-34C6-A54DF25AF596') or by index (e.g '--connect=index -p 3').",
+                         "connect to device either by name (e.g '--connect=name p \"WHOOP 4A0934182\" '), by address (e.g '--connect=address p C6FBA-C7E8-0494-34C6-A54DF25AF596') or by index (e.g '--connect=index p 3').",
                          cxxopts::value<string>()->implicit_value(DEFAULT_CONNECT_TYPE))
                         (CMD_DISCONNECT_CMD,
                          "disconnect from device either by name, address or index (see 'connect')",
                          cxxopts::value<string>()->implicit_value(DEFAULT_CONNECT_TYPE))
                         (CMD_READ,
-                         "read characteristic from device, specified by index. ( e.g '-p \"WHOOP 4A0934182\" --read=3' )",
+                         "read characteristic from device, specified by index. ( e.g 'p \"WHOOP 4A0934182\" --read=3' )",
                          cxxopts::value<string>())
                         (CMD_WRITE,
-                         "write characteristic to device, specified by index. multiple values must be written in quotation marks and separated by commas. ( e.g '-p \"WHOOP 4A0934182\" --write=2' )",
+                         "write characteristic to device, specified by index. multiple values must be written in quotation marks and separated by commas. ( e.g 'p \"WHOOP 4A0934182\" --write=2' )",
                          cxxopts::value<string>())
                         (CMD_VALUE,
-                         R"(spedify values for writing characteristic. multiple values must be written in quotation marks and separated by commas. ( e.g '-p "WHOOP 4A0934182" --write=2 --value="0x0A,0x10,0x42"' ))",
+                         R"(spedify values for writing characteristic. multiple values must be written in quotation marks and separated by commas. ( e.g 'p "WHOOP 4A0934182" --write=2 --value="0x0A,0x10,0x42"' ))",
                          cxxopts::value<string>());
 
         commands.add_options("OSC")
@@ -776,11 +777,12 @@ static void osc_callback(string typetag, vector<any> message) {
 }
 
 static void register_characteristics() {
+    CharacteristicCyclingPowerControlPoint::register_characteristic();
+    CharacteristicCyclingPowerMeasurement::register_characteristic();
+    CharacteristicCyclingSpeedCadence::register_characteristic();
+    CharacteristicFitnessMachineControlPoint::register_characteristic();
     CharacteristicHeartRateMeasurment::register_characteristic();
     CharacteristicIndoorBikeData::register_characteristic();
-    CharacteristicCyclingPowerMeasurement::register_characteristic();
-    CharacteristicCyclingPowerControlPoint::register_characteristic();
-    CharacteristicFitnessMachineControlPoint::register_characteristic();
 }
 
 static void setup_logging() {

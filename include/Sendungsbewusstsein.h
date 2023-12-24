@@ -11,6 +11,7 @@
 //#define DEBUG_CYCLING_POWER_MEASUREMENT_FEATURES
 //#define DEBUG_HEART_RATE_MEASUREMENT_FEATURES
 //#define DEBUG_DEVICE
+//#define DEBUG_CYCLING_SPEED_AND_CADENCE_MEASUREMENT
 
 static const constexpr char *SB_OSC_ADDRESS_PATTERN = "/sendungsbewusstsein/";
 static const int            NO_DEVICE_FOUND         = -1;
