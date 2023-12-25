@@ -20,6 +20,16 @@ $ cmake ..
 $ make
 ```
 
+### windows prerequisits
+
+maybe use MinGW and MSYS2
+
+- install `GCC`
+- install `CMake`
+- install `git`
+
+
+
 ## libraries
 
 this project uses the following libraries:
