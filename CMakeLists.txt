@@ -37,4 +37,6 @@ set_target_properties(sendungsbewusstsein PROPERTIES LINK_FLAGS "-Wl,-S")
 
 # libraries
 target_compile_definitions(sendungsbewusstsein PRIVATE SIMPLEBLE_STATIC_DEFINE)
-target_link_libraries(sendungsbewusstsein "-framework CoreBluetooth" "-framework Foundation")
+if (APPLE)
+    target_link_libraries(sendungsbewusstsein "-framework CoreBluetooth" "-framework Foundation")
+endif ()
