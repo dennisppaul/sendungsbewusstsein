@@ -8,6 +8,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 if (APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build architectures for Mac OS X" FORCE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif ()
 set(SB_LIBRARY_PATH "libraries")
