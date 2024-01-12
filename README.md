@@ -6,15 +6,17 @@ see [DOCUMENTATION](./DOCUMENTATION.md) for usage information.
 
 ### macOS
 
-- install CMake with homebrew `brew install cmake`
-- make sure XCode is intalled
-- on macOS allow terminal application to use Bluetooth in `System Settings / Privacy & Security / Bluetooth` 
+- install Xcode command line tools: `xcode-select --install`
+- install CMake with [Homebrew](https://brew.sh): `brew install cmake`
+- allow terminal application ( or whichever application starts `sendungsbewusstsein` ) to use Bluetooth in `System Settings / Privacy & Security / Bluetooth`
 
 ![allow-application-to-use-bluetooth](./assets/allow-application-to-use-bluetooth.png)
 
 *example for macOS 13.4.1 and iTerm*
 
 ### Windows
+
+( WIP )
 
 - install [MSYS2](https://www.msys2.org/)
 - install [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
@@ -37,9 +39,18 @@ $ sudo apt-get upgrade -y
 $ sudo apt-get install git clang cmake pkg-config libdbus-1-dev -y
 ```
 
-## Cloning with submodules
+## Cloning with Submodule `SimpleBLE`
 
 in order to clone the project with submodules ( i.e `simpleble` library ) use the following command:
+
+```
+$ git clone https://github.com/dennisppaul/sendungsbewusstsein.git
+$ cd sendungsbewusstsein/libraries/simpleble
+$ git clone https://github.com/OpenBluetoothToolbox/SimpleBLE.git .
+$ git checkout 83ca194eac08dca51a44e55508e1c417d16619df # last working commit
+```
+
+the default way to clone with submodules currently does not work due to an issue in the current SimpleBLE library ( in macOS ):
 
 ```
 $ git clone --recurse-submodules https://github.com/dennisppaul/sendungsbewusstsein.git
