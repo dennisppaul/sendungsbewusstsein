@@ -3,15 +3,22 @@ import netP5.*;
 
 OscP5 oscP5;
 NetAddress fRemoteLocation;
+float mValue = 0;
 
 void setup() {
     size(1024, 768);
     oscP5 = new OscP5(this, 7000);
     fRemoteLocation = new NetAddress("127.0.0.1", 7001);
+    background(50);
 }
 
 void draw() {
-    background(50);
+    float x = frameCount % width;
+    float y = map(mValue, 40, 180, height - 50, 50);
+    stroke(50);
+    line(x, 0, x, height);
+    stroke(255);
+    line(x, height, x, y);
 }
 
 void print_message(OscMessage mMessage) {
@@ -70,7 +77,7 @@ void oscEvent(OscMessage message) {
             //                                        (feature_index/feature_name),
             //                                        value)
             // typetag .... : iii(i/s)f
-            float mValue = message.get(4).floatValue();
+            mValue = message.get(4).floatValue();
             println("value: " + mValue);
         } else {
             print("### received 'sendungsbewusstsein' message ");
