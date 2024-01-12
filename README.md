@@ -7,6 +7,7 @@ see [DOCUMENTATION](./DOCUMENTATION.md) for usage information.
 ### macOS
 
 - install CMake with homebrew `brew install cmake`
+- make sure XCode is intalled
 - on macOS allow terminal application to use Bluetooth in `System Settings / Privacy & Security / Bluetooth` 
 
 ![allow-application-to-use-bluetooth](./assets/allow-application-to-use-bluetooth.png)
