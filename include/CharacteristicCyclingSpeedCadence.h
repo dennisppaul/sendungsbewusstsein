@@ -35,6 +35,7 @@ public:
                                      supported_characteristic_index) {
         fFeatures.emplace_back(FEATURE_WHEEL_STR);
         fFeatures.emplace_back(FEATURE_CRANK_STR);
+        fFeatures.emplace_back(FEATURE_CRANK_TIME_STR);
     }
 
     void init() override {
@@ -116,11 +117,13 @@ private:
     constexpr static const char *CHARACTERISTIC = CHARACTERISTIC_CYCLING_SPEED_AND_CADENCE_MEASUREMENT_N;
 
     // TODO this needs to be sorted out properly
-    static const int            FEATURE_WHEEL      = 0;
-    constexpr static const char *FEATURE_WHEEL_STR = "wheel";
-    static const int            FEATURE_CRANK      = 1;
-    constexpr static const char *FEATURE_CRANK_STR = "crank";
-    static const int            NUM_FEATURES       = 2;
+    static const int            FEATURE_WHEEL           = 0;
+    constexpr static const char *FEATURE_WHEEL_STR      = "wheel";
+    static const int            FEATURE_CRANK           = 1;
+    constexpr static const char *FEATURE_CRANK_STR      = "crank";
+    static const int            FEATURE_CRANK_TIME      = 2;
+    constexpr static const char *FEATURE_CRANK_TIME_STR = "crank_time";
+    static const int            NUM_FEATURES            = 3;
 
     enum {
         FLAG_WHEEL_REVOLUTION_DATA_PRESENT = 0x0001,
@@ -138,6 +141,7 @@ private:
             uint16_t mLastWheelEventTime         = bytes_to_uint16(bytes[i + 5],
                                                                    bytes[i + 4]); // Unit is 1/1024th of a second
             send(FEATURE_WHEEL, static_cast<float>(mCumulativeWheelRevolutions));
+            // console << "FEATURE_WHEEL: " << mCumulativeWheelRevolutions << endl;
         }
         if (flags & FLAG_CRANK_REVOLUTION_DATA_PRESENT) {
             // 3.61.3 Crank Revolution Data field
@@ -145,10 +149,12 @@ private:
             uint16_t mLastCrankEventTime         = bytes_to_uint16(bytes[i + 3],
                                                                    bytes[i + 2]); // Unit is 1/1024th of a second
             send(FEATURE_CRANK, static_cast<float>(mCumulativeCrankRevolutions));
+            send(FEATURE_CRANK_TIME, static_cast<float>(mLastCrankEventTime) / 1024.0f);
+            // console << "FEATURE_CRANK   : " << mCumulativeCrankRevolutions << endl;
+            // console << "FEATURE_CRANK_EVENT_TIME: " << mLastCrankEventTime << endl;
         }
 #ifdef DEBUG_CYCLING_SPEED_AND_CADENCE_MEASUREMENT
         console << "CyclingSpeedCadence:" << endl;
-        Utils::print_byte_array_as_bits(bytes);
 #endif // DEBUG_CYCLING_SPEED_AND_CADENCE_MEASUREMENT
     }
 };
